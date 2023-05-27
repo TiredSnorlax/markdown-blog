@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { rules } from '$lib/markdown/rules';
-	import { tokenise } from '$lib/parser';
+	import { convertToHtml, groupTokens, tokenise } from '$lib/parser';
 
 	let inputTextArea: HTMLTextAreaElement;
 	let markdownOutput: HTMLDivElement;
@@ -25,7 +25,11 @@
 
 	const pressRender = () => {
 		let doc = inputTextArea.value;
-		tokenise(doc);
+		console.log(doc);
+		let tokens = tokenise(doc);
+		if (!tokens) return;
+		let blocks = groupTokens(tokens);
+		convertToHtml(blocks);
 	};
 
 	const onTextareaKey = (e: KeyboardEvent) => {
