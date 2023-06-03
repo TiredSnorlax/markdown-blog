@@ -29,10 +29,3 @@ At the command prompt, type `nano`.
 My favorite search engine is [Duck Duck Go](https://duckduckgo.com "The best search engine for privacy").
 
 
-Notes:
-## Ways to parse nested lists:
-1. Add all <ul><li> and </li></ul> tags to all levels of nesting first. Then replace all '*' with </li><li>. The empty <li></li> tags at the front should not be rendered
-
-
-Links
-https://codepen.io/kvendrik/pen/bGKeEE
