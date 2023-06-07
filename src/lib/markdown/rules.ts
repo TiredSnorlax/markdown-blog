@@ -15,8 +15,8 @@ export const rules = [
   [/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2A5DB0;text-decoration: none;">$1</a>'],
 
   // pre
-  [/^\s*\n\`\`\`(([^\s]+))?/gm, '<pre class="$2">'],
-  [/^\`\`\`\s*\n/gm, '</pre>\n\n'],
+  [/^\`{3}(.+)?/gm, '<pre class="$2">'],
+  [/^\`{3}\n/gm, '</pre>\n'],
 
   // code
   [/[`]{1}([^`]+)[`]{1}/g, '<code>$1</code>'],

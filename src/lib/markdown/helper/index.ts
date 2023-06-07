@@ -45,7 +45,7 @@ export const replaceSelectedText = (token: string) => {
   }
 };
 
-export const getParentElementOfLine = () => {
+export const getParentNodeOfLine = () => {
   let sel = window.getSelection();
   if (!sel) return;
   let range = sel.getRangeAt(0);
@@ -60,13 +60,15 @@ export const getParentElementOfLine = () => {
 export const getCurrentLine = () => {
   let sel = window.getSelection();
   if (!sel) return;
-  let range = sel.getRangeAt(0);
-  let divContainer: Node | ParentNode | null = range.startContainer;
-  return divContainer?.textContent;
+  let parent = getParentNodeOfLine();
+  console.log("currentLine", parent?.textContent)
+  return parent?.textContent || null;
 }
 
 export const getIndentLevel = () => {
   let currentLine = getCurrentLine();
+  console.log('current line in indent level', currentLine)
+  if (!currentLine) return 0;
 
   const tabArray = currentLine?.match(/^[\t]+/);
   if (!tabArray) return 0;
@@ -76,33 +78,29 @@ export const getIndentLevel = () => {
 
 export const insertString = (str: string) => {
   let sel = window.getSelection();
+  console.log(sel);
   if (!sel) return;
   let range = sel.getRangeAt(0);
+  range.deleteContents();
 
   // var tabNode = document.createTextNode('\u00a0\u00a0\u00a0\u00a0');
   const tabNode = document.createTextNode(str);
+  console.log(tabNode)
   range.insertNode(tabNode);
-
   range.setStartAfter(tabNode);
   range.setEndAfter(tabNode);
-  sel.removeAllRanges();
-  sel.addRange(range);
 }
 
 export const clearLineBeforeCursor = () => {
+  console.log("clearing line")
   let sel = window.getSelection();
   if (!sel) return;
   let currentRange = sel.getRangeAt(0);
-
-  let newRange = document.createRange();
-
-  newRange.setStart(currentRange.startContainer, 0)
-  newRange.setEnd(currentRange.startContainer, currentRange.startOffset);
-
-  console.log(newRange);
-
-  sel.addRange(newRange);
-  newRange.deleteContents()
-  sel.collapseToStart()
+  let parentNode = getParentNodeOfLine();
+  if (!parentNode) return;
+  console.log(parentNode)
+  currentRange.setStartAfter(parentNode.firstChild!);
+  console.log("deleting: ", currentRange.toString());
+  currentRange.deleteContents()
 }
 
