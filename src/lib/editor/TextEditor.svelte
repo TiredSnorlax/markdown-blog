@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { convertToHtml, groupTokens, tokenise } from '$lib/parser';
-	import { insertString } from '$lib/markdown/helper';
-	import { enterPressed, pasteText } from '$lib/editor/helper';
+	import { enterPressed, pasteText, insertString } from '$lib/editor/helper';
 
 	export const doc: string = '';
 	export let updateOutput: (html: string) => void;
@@ -43,10 +42,12 @@
 <button on:click={pressRender}>Render</button>
 <div
 	class="editor"
+	id="editor"
 	contenteditable="true"
 	on:paste={onPaste}
 	on:keydown={onTextareaKey}
 	bind:this={inputTextArea}
+	data-iseditor="true"
 >
 	<div>Edit me</div>
 </div>

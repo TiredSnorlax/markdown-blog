@@ -10,13 +10,14 @@ export const rules = [
   // bold, italics and paragragh rules
   [/[\*\_]{2}([^\*\_]+)[\*\_]{2}/g, '<b>$1</b>'],
   [/[\*\_]{1}([^\*\_]+)[\*\_]{1}/g, '<i>$1</i>'],
+  [/[\~]{2}([^\~]+)[\~]{2}/g, '<s>$1</s>'],
 
   // links
   [/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#2A5DB0;text-decoration: none;">$1</a>'],
 
   // pre
-  [/^\`{3}(.+)?/gm, '<pre class="$2">'],
-  [/^\`{3}\n/gm, '</pre>\n'],
+  // [/^\`{3}(.+)?/gm, '<code class="$2">'],
+  // [/^\`{3}\n/gm, '</pre>\n'],
 
   // code
   [/[`]{1}([^`]+)[`]{1}/g, '<code>$1</code>'],

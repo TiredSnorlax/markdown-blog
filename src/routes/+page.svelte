@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { replaceSelectedText } from '$lib/markdown/helper';
 	import TextEditor from '$lib/editor/TextEditor.svelte';
+	import ToolBar from '$lib/editor/toolbar/ToolBar.svelte';
 
 	let markdownOutput: HTMLDivElement;
 
@@ -9,10 +9,7 @@
 	};
 </script>
 
-<div class="utilityBar">
-	<button on:click={() => replaceSelectedText('**')}>Bold</button>
-	<button on:click={() => replaceSelectedText('*')}>Italics</button>
-</div>
+<ToolBar />
 <div class="container">
 	<section class="left">
 		<TextEditor {updateOutput} />
@@ -38,7 +35,7 @@
 	}
 
 	.left {
-		flex: 1;
+		width: 50%;
 		border: 1px solid black;
 		display: flex;
 		flex-direction: column;
@@ -46,16 +43,7 @@
 	}
 
 	.right {
-		flex: 1;
-		padding: 0.5rem;
-		width: 100%;
-	}
-
-	.utilityBar {
-		top: 0rem;
-		position: sticky;
-		background: #eee;
-		border: 1px solid grey;
+		width: 50%;
 		padding: 0.5rem;
 	}
 

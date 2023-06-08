@@ -11,8 +11,8 @@ interface Block {
 }
 
 // TODO: convert to array to loop through
-const unorderedListRules = [/^(\t*\*.+)/gm, '$1', 'LIST'];
-const orderedListRules = [/^(\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\..*)/gm, '$1', 'LIST'];
+const unorderedListRules = [/^(\t*\*[^\S\t\n\r].+)/gm, '$1', 'LIST'];
+const orderedListRules = [/^(\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.[^\S\t\n\r].*)/gm, '$1', 'LIST'];
 const preOpeningRules = [/^\`{3}(.+)?/gm, "$1", "PRE"];
 
 export const tokenise = (doc: string) => {
@@ -195,12 +195,12 @@ export const handleLists = (listBlock: Block) => {
 
 export const handlePreBlocks = (listBlock: Block) => {
   let startToken = listBlock.children[0];
-  let html = `<pre class="${startToken}">\n`;
+  let html = `<pre class="${startToken}"><code>\n`;
 
   for (let i = 1; i < listBlock.children.length - 1; i++) {
     html += listBlock.children[i] + "\n";
   }
-  html += "</pre>\n"
+  html += "</code></pre>\n"
   console.log("pre: ", html)
 
   return html;
