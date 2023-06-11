@@ -54,8 +54,10 @@ export const groupTokens = (tokens: Token[]) => {
     } else if (!currentBlock) {
       currentBlock = { type: token.type, children: [token.content] };
       // Check for ending pre tag
+
+      console.log(token.type, i)
       if (token.type === "PRE") {
-        console.log(token);
+        console.log(token, i);
         console.log(tokens.slice(i + 1));
         let relativeClosingIndex = tokens.slice(i + 1).findIndex((token) => token.type === "PRE");
         if (relativeClosingIndex) {
@@ -71,8 +73,11 @@ export const groupTokens = (tokens: Token[]) => {
     } else if (currentBlock && currentBlock.type === token.type) {
       currentBlock.children.push(token.content);
     } else if (currentBlock.type !== token.type) {
+      console.log('change in current block', currentBlock, token)
       blocks.push(currentBlock);
-      currentBlock = { type: token.type, children: [token.content] };
+      currentBlock = null;
+      i--;
+      // currentBlock = { type: token.type, children: [token.content] };
     }
   }
   if (currentBlock) blocks.push(currentBlock);
@@ -116,7 +121,6 @@ export const handleLists = (listBlock: Block) => {
   let endTagStack = [];
 
   let currentListType: string | null = null;
-  let nextListType: string | null = null;
   let prevListType: string | null = null;
 
   for (let i = 0; i < listBlock.children.length; i++) {
@@ -138,14 +142,6 @@ export const handleLists = (listBlock: Block) => {
     } else if (child.match(orderedListRules[0])) {
       child = child.replace(/^\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.(.+)/gm, "$1")
       currentListType = "ORDERED_LIST";
-    }
-
-    if (nextChild && nextChild.match(unorderedListRules[0])) {
-      nextListType = "UNORDERED_LIST";
-    } else if (nextChild && nextChild.match(orderedListRules[0])) {
-      nextListType = "ORDERED_LIST";
-    } else {
-      nextListType = null;
     }
 
 
@@ -195,12 +191,12 @@ export const handleLists = (listBlock: Block) => {
 
 export const handlePreBlocks = (listBlock: Block) => {
   let startToken = listBlock.children[0];
-  let html = `<pre class="${startToken}"><code>\n`;
+  let html = `<pre class="${startToken}">\n`;
 
   for (let i = 1; i < listBlock.children.length - 1; i++) {
     html += listBlock.children[i] + "\n";
   }
-  html += "</code></pre>\n"
+  html += "</pre>\n"
   console.log("pre: ", html)
 
   return html;

@@ -12,4 +12,5 @@ export interface IBlog {
   description: string;
   content: string;
   createdAt: FirestoreTimeStamp;
+  id?: string;
 }

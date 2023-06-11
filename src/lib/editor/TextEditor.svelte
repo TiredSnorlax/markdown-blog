@@ -1,16 +1,41 @@
 <script lang="ts">
 	import { convertToHtml, groupTokens, tokenise } from '$lib/parser';
-	import { enterPressed, pasteText, insertString } from '$lib/editor/helper';
+	import { enterPressed, pasteText, insertString, insertOnNewLine } from '$lib/editor/helper';
+	import type { IBlog } from '$lib/types';
 
-	export const doc: string = '';
+	export let blog: IBlog | null;
 	export let updateOutput: (html: string) => void;
+	export let updateDb: (editorString: string) => void;
 
 	let inputTextArea: HTMLDivElement;
 
+	const renderInitialBlog = (blog: IBlog | null, inputTextArea: HTMLDivElement) => {
+		if (!blog || !inputTextArea) return;
+		let blogContent = blog?.content;
+		if (!blogContent) return console.error('no blog content');
+		// let content = decodeURI(blogContent);
+
+		let content = blogContent.split('\n');
+
+		for (const line of content) {
+			const div = document.createElement('div');
+			const inner = document.createTextNode(line);
+			div.appendChild(inner);
+			inputTextArea.appendChild(div);
+		}
+	};
+
 	const pressRender = () => {
-		let doc = inputTextArea.innerText;
-		console.log(doc);
-		let tokens = tokenise(doc);
+		let sanitised = '';
+		for (const child of inputTextArea.children) {
+			if (child.textContent) {
+				sanitised += child.textContent + '\n';
+			} else {
+				sanitised += '\n';
+			}
+		}
+		updateDb(sanitised);
+		let tokens = tokenise(sanitised);
 		if (!tokens) return;
 		let blocks = groupTokens(tokens);
 		let html = convertToHtml(blocks);
@@ -37,6 +62,8 @@
 		if (!text) return;
 		pasteText(text, inputTextArea);
 	};
+
+	$: renderInitialBlog(blog, inputTextArea);
 </script>
 
 <button on:click={pressRender}>Render</button>
@@ -48,9 +75,7 @@
 	on:keydown={onTextareaKey}
 	bind:this={inputTextArea}
 	data-iseditor="true"
->
-	<div>Edit me</div>
-</div>
+/>
 
 <style>
 	.editor {

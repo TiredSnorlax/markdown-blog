@@ -60,7 +60,7 @@ export const insertString = (str: string) => {
   range.setEndAfter(tabNode);
 }
 
-export const insertOnNewLine = (contentToAdd: string | null) => {
+export const insertOnNewLine = (contentToAdd: string) => {
   const parentNode = getParentNodeOfLine() as HTMLDivElement;
   if (checkIfEditable(parentNode)) return;
 
@@ -68,11 +68,17 @@ export const insertOnNewLine = (contentToAdd: string | null) => {
   const sel = window.getSelection();
 
   let div = document.createElement('div');
-  let br = document.createElement('br');
-  let inner = document.createTextNode(contentToAdd ?? "\n");
+
+  // let inner: HTMLBRElement | Text = document.createElement('br');
+  // if (contentToAdd) {
+  //   inner = document.createTextNode(contentToAdd!);
+  // }
+
+  let inner = document.createTextNode(contentToAdd);
+  // let br = document.createElement("br");
 
   div.appendChild(inner)
-  div.appendChild(br);
+  // div.appendChild(br);
 
   const isEditor = isParentTheEditor(parentNode);
   console.log(parentNode)
@@ -121,7 +127,7 @@ export const enterPressed = (inputTextArea: HTMLDivElement) => {
 
     let newRange = range.cloneRange();
 
-    newRange.setEndAfter(parentNode?.lastChild!);
+    newRange.setEndBefore(parentNode?.lastChild!);
     let existingContent = newRange.toString();
 
     newRange.deleteContents();

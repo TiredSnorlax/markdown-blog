@@ -1,23 +1,52 @@
 <script lang="ts">
 	import TextEditor from '$lib/editor/TextEditor.svelte';
 	import ToolBar from '$lib/editor/toolbar/ToolBar.svelte';
+	import type { IBlog } from '$lib/types';
 
 	import { page } from '$app/stores';
+	import { doc, getDoc, updateDoc } from 'firebase/firestore';
+	import { db } from '$lib/db/setup';
+	import { onMount } from 'svelte';
+
+	const docRef = doc(db, 'blogs', $page.params.id);
 
 	let markdownOutput: HTMLDivElement;
 
-	console.log('id: ', $page.params.id);
+	let blog: IBlog | null;
+
+	let newBlogContent: string | null = null;
+
+	const getBlog = async () => {
+		console.log('id: ', $page.params.id);
+		// TODO: Owner verificaiton
+		const docSnap = await getDoc(docRef);
+
+		if (docSnap.exists()) {
+			console.log(docSnap.data());
+			blog = docSnap.data() as IBlog;
+		}
+	};
+
+	const updateDb = async (editorString: string) => {
+		let content = editorString;
+		console.log('updating db');
+		await updateDoc(docRef, { content });
+	};
 
 	const updateOutput = (html: string) => {
 		markdownOutput.innerHTML = html;
 	};
+
+	onMount(() => {
+		getBlog();
+	});
 </script>
 
 <div class="container">
 	<ToolBar />
 	<main>
 		<section class="left">
-			<TextEditor {updateOutput} />
+			<TextEditor {updateOutput} {updateDb} {blog} />
 		</section>
 		<section class="right">
 			<div class="output" bind:this={markdownOutput} />
