@@ -1,21 +1,30 @@
 <script lang="ts">
-	import { convertToHtml, groupTokens, tokenise } from '$lib/parser';
-	import { enterPressed, pasteText, insertString, insertOnNewLine } from '$lib/editor/helper';
+	import { enterPressed, pasteText, insertString, getParentNodeOfLine } from '$lib/editor/helper';
 	import type { IBlog } from '$lib/types';
 
 	export let blog: IBlog | null;
-	export let updateOutput: (html: string) => void;
+	export let updateOutput: (content: string) => void;
 	export let updateDb: (editorString: string) => void;
 
 	let inputTextArea: HTMLDivElement;
+	let typeTimeout: ReturnType<typeof setTimeout>;
 
 	const renderInitialBlog = (blog: IBlog | null, inputTextArea: HTMLDivElement) => {
 		if (!blog || !inputTextArea) return;
 		let blogContent = blog?.content;
 		if (!blogContent) return console.error('no blog content');
-		// let content = decodeURI(blogContent);
 
 		let content = blogContent.split('\n');
+
+		const tempContent = [...content];
+
+		for (let i = 0; i < content.length; i++) {
+			const line = content[content.length - i - 1];
+			if (line.length > 0) break;
+			tempContent.pop();
+		}
+
+		content = [...tempContent];
 
 		for (const line of content) {
 			const div = document.createElement('div');
@@ -23,9 +32,11 @@
 			div.appendChild(inner);
 			inputTextArea.appendChild(div);
 		}
+
+		pressRender();
 	};
 
-	const pressRender = () => {
+	const sanitiseInput = () => {
 		let sanitised = '';
 		for (const child of inputTextArea.children) {
 			if (child.textContent) {
@@ -34,25 +45,33 @@
 				sanitised += '\n';
 			}
 		}
-		updateDb(sanitised);
-		let tokens = tokenise(sanitised);
-		if (!tokens) return;
-		let blocks = groupTokens(tokens);
-		let html = convertToHtml(blocks);
 
-		console.log(html);
-		updateOutput(html);
+		return sanitised;
+	};
+
+	const pressRender = () => {
+		let sanitised = sanitiseInput();
+		updateOutput(sanitised);
+	};
+
+	const updateFunction = () => {
+		updateDb(sanitiseInput());
 	};
 
 	const onTextareaKey = (e: KeyboardEvent) => {
+		if (typeTimeout) {
+			clearTimeout(typeTimeout);
+		}
+		typeTimeout = setTimeout(pressRender, 1000);
 		if (e.key === 'Tab') {
 			console.log('tab');
 			e.preventDefault();
 			insertString('\t');
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
-			enterPressed(inputTextArea);
+			enterPressed();
 		} else if (e.key === 'Shift') {
+			console.log(getParentNodeOfLine());
 		}
 	};
 
@@ -60,17 +79,18 @@
 		e.preventDefault();
 		const text = e.clipboardData?.getData('text/plain');
 		if (!text) return;
-		pasteText(text, inputTextArea);
+		pasteText(text);
 	};
 
 	$: renderInitialBlog(blog, inputTextArea);
 </script>
 
-<button on:click={pressRender}>Render</button>
+<button on:click={updateFunction}>Save</button>
 <div
 	class="editor"
 	id="editor"
 	contenteditable="true"
+	spellcheck="false"
 	on:paste={onPaste}
 	on:keydown={onTextareaKey}
 	bind:this={inputTextArea}
@@ -97,5 +117,28 @@
 
 	:global(.editor > div:focus-within) {
 		background: grey;
+	}
+
+	button {
+		position: fixed;
+		bottom: 0;
+		right: 0;
+		margin: 1rem;
+
+		background: lightsteelblue;
+		color: white;
+		border: none;
+		outline: none;
+		font-size: 1.5rem;
+		padding: 0.5rem;
+		padding-inline: 1rem;
+		border-radius: 0.5rem;
+		cursor: pointer;
+		opacity: 0.5;
+		transition: opacity 0.3s;
+	}
+
+	button:hover {
+		opacity: 1;
 	}
 </style>

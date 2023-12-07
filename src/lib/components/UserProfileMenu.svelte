@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { userStore } from '$lib/stores';
 	import { auth } from '$lib/db/setup';
-	import { getAuth, signOut, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+	import { signOut, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 	let modalOpen = false;
 
@@ -85,10 +85,6 @@
 
 <style>
 	.container {
-		position: fixed;
-		top: 0.5rem;
-		right: 1rem;
-
 		border: 1px solid white;
 
 		z-index: 100;
@@ -101,6 +97,7 @@
 
 		width: 36px;
 		height: 36px;
+		position: relative;
 	}
 
 	.container > button {

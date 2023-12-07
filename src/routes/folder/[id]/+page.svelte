@@ -1,9 +1,10 @@
 <script lang="ts">
 	import InsideFolder from '$lib/components/InsideFolder.svelte';
+	import { page } from '$app/stores';
 </script>
 
 <main>
-	<InsideFolder folderId={'root'} />
+	<InsideFolder folderId={$page.params.id} />
 </main>
 
 <style>

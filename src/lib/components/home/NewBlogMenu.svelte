@@ -7,7 +7,7 @@
 	import { goto } from '$app/navigation';
 
 	export let newBlogMenuOpen: boolean;
-	export let parentId: string;
+	export let currentId: string;
 
 	let user = userStore(auth);
 
@@ -16,20 +16,18 @@
 	const createNewBlog = async () => {
 		if (!$user) return;
 		let newBlog: IBlog = {
-			parentId,
+			parentId: currentId,
 			ownerId: $user.uid,
 			title: newTitle,
 			content: 'Edit me',
 			createdAt: serverTimestamp()
 		};
 		console.log(newBlog);
-		console.log(window.location.hostname);
 
 		const docRef = await addDoc(collection(db, 'blogs'), newBlog);
 		console.log('Document written with ID: ', docRef.id);
-		console.log(window.location.hostname + '/blog/' + docRef.id);
 
-		await goto(window.location.hostname + '/blog/' + docRef.id);
+		goto(window.location.origin + '/blog/' + docRef.id + '/edit');
 	};
 </script>
 

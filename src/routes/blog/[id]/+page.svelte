@@ -1,40 +1,27 @@
 <script lang="ts">
-	import TextEditor from '$lib/editor/TextEditor.svelte';
-	import ToolBar from '$lib/editor/toolbar/ToolBar.svelte';
 	import type { IBlog } from '$lib/types';
 
 	import { page } from '$app/stores';
-	import { doc, getDoc, updateDoc } from 'firebase/firestore';
-	import { db } from '$lib/db/setup';
 	import { onMount } from 'svelte';
 
-	const docRef = doc(db, 'blogs', $page.params.id);
-
-	let markdownOutput: HTMLDivElement;
+	import { db } from '$lib/db/setup';
+	import { doc, getDoc } from 'firebase/firestore';
+	import MarkdownOutput from '$lib/components/MarkdownOutput.svelte';
 
 	let blog: IBlog | null;
 
-	let newBlogContent: string | null = null;
+	let markdownContent: string | null = null;
 
 	const getBlog = async () => {
 		console.log('id: ', $page.params.id);
-		// TODO: Owner verificaiton
+
+		const docRef = doc(db, 'blogs', $page.params.id);
 		const docSnap = await getDoc(docRef);
 
 		if (docSnap.exists()) {
-			console.log(docSnap.data());
 			blog = docSnap.data() as IBlog;
+			markdownContent = blog.content;
 		}
-	};
-
-	const updateDb = async (editorString: string) => {
-		let content = editorString;
-		console.log('updating db');
-		await updateDoc(docRef, { content });
-	};
-
-	const updateOutput = (html: string) => {
-		markdownOutput.innerHTML = html;
 	};
 
 	onMount(() => {
@@ -42,55 +29,79 @@
 	});
 </script>
 
-<div class="container">
-	<ToolBar />
-	<main>
-		<section class="left">
-			<TextEditor {updateOutput} {updateDb} {blog} />
-		</section>
-		<section class="right">
-			<div class="output" bind:this={markdownOutput} />
-		</section>
-	</main>
-</div>
+<main>
+	<div class="info">
+		<h1>{blog?.title}</h1>
+		<div class="writerInfo">
+			<img src="/default-profile.jpg" alt="" />
+			<div>
+				<p>TiredSnorlax</p>
+				<span>22 March 2023</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="outputContainer">
+		<MarkdownOutput {markdownContent} />
+	</div>
+</main>
 
 <style>
-	:global(body) {
-		padding: 0;
-		margin: 0;
-	}
-	.container {
-		height: 100svh;
-		width: 100%;
-
-		display: flex;
-		flex-direction: column;
-		font-family: 'Roboto Condensed', sans-serif;
-		font-size: 18px;
-	}
-
 	main {
-		flex: 1;
-		display: flex;
-	}
-
-	.left {
-		width: 50%;
-		border: 1px solid black;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
-	.right {
-		width: 50%;
-		padding: 0.5rem;
+	main > div {
+		width: 100%;
+		max-width: 700px;
 	}
 
-	:global(.right pre) {
-		background: #eee;
-		border-radius: 0.5rem;
+	.info {
+		margin-top: 3rem;
+		display: flex;
+		flex-direction: column;
 		padding: 1rem;
-		font-size: 16px;
+	}
+
+	.info {
+		border-bottom: 1px solid grey;
+	}
+
+	.info h1 {
+		font-size: 3rem;
+	}
+
+	.writerInfo {
+		display: flex;
+		width: 100%;
+	}
+
+	.writerInfo img {
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		margin-right: 1rem;
+	}
+
+	.writerInfo > div {
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+	}
+
+	.writerInfo p {
+		margin: 0;
+		font-size: 18px;
+	}
+
+	.writerInfo span {
+		color: grey;
+		font-size: 14px;
+	}
+	.outputContainer {
+		padding-top: 2rem;
 	}
 </style>

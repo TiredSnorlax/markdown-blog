@@ -4,11 +4,10 @@
 	export let blog: IBlog;
 </script>
 
-<a href="./blog/{blog.id}">
+<a href="./blog/{blog.id}/edit">
 	<div class="container">
 		<div>
 			<h2>{blog.title}</h2>
-			<p>{blog.description}</p>
 		</div>
 		<span>{blog.createdAt}</span>
 	</div>
@@ -44,12 +43,6 @@
 	h2 {
 		margin: 0;
 		font-size: 2rem;
-	}
-
-	p {
-		color: grey;
-		font-size: 1rem;
-		margin: 0;
 	}
 
 	span {

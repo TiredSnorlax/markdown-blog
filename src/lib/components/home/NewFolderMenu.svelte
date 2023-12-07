@@ -1,46 +1,46 @@
 <script lang="ts">
-	import type { IBlog } from '$lib/types';
+	import type { IFolder } from '$lib/types';
 	import { userStore } from '$lib/stores';
 	import { auth, db } from '$lib/db/setup';
 	import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
-	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { slide } from 'svelte/transition';
 
-	export let newBlogMenuOpen: boolean;
-	export let parentId: string;
+	export let newFolderMenuOpen: boolean;
+	export let currentPath: string | undefined;
+	export let currentId: string;
 
 	let user = userStore(auth);
 
-	let newTitle = '';
+	let newName = '';
 
-	const createNewBlog = async () => {
+	const createNewFolder = async () => {
 		if (!$user) return;
-		let newBlog: IBlog = {
-			parentId,
+		if (!currentPath) currentPath = '/';
+		let newFolder: IFolder = {
 			ownerId: $user.uid,
-			title: newTitle,
-			content: 'Edit me',
-			createdAt: serverTimestamp()
+			parentId: currentId,
+			path: currentPath.concat(newName + '/'),
+			children: [],
+			name: newName,
+			createdAt: serverTimestamp(),
+			isPublic: false
 		};
-		console.log(newBlog);
-		console.log(window.location.hostname);
 
-		const docRef = await addDoc(collection(db, 'blogs'), newBlog);
-		console.log('Document written with ID: ', docRef.id);
-		console.log(window.location.hostname + '/blog/' + docRef.id);
+		const docRef = await addDoc(collection(db, 'folders'), newFolder);
 
-		await goto(window.location.hostname + '/blog/' + docRef.id);
+		goto(window.location.origin + '/folder/' + docRef.id);
 	};
 </script>
 
-{#if newBlogMenuOpen}
-	<button class="background" on:click|self={() => (newBlogMenuOpen = false)}>
+{#if newFolderMenuOpen}
+	<button class="background" on:click|self={() => (newFolderMenuOpen = false)}>
 		<div class="menu" transition:slide>
-			<input class="titleInput" bind:value={newTitle} placeholder="Title of New Blog" />
+			<input class="titleInput" bind:value={newName} placeholder="Title of Folder" />
 
 			<div class="btnContainer">
-				<button on:click={() => (newBlogMenuOpen = false)}>Cancel</button>
-				<button on:click={createNewBlog}>Create</button>
+				<button on:click={() => (newFolderMenuOpen = false)}>Cancel</button>
+				<button on:click={createNewFolder}>Create</button>
 			</div>
 		</div>
 	</button>
