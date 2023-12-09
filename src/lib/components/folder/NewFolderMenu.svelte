@@ -16,11 +16,11 @@
 
 	const createNewFolder = async () => {
 		if (!$user) return;
-		if (!currentPath) currentPath = '/';
+		if (!currentPath) currentPath = '';
 		let newFolder: IFolder = {
 			ownerId: $user.uid,
 			parentId: currentId,
-			path: currentPath.concat(newName + '/'),
+			path: currentPath.concat('/' + newName),
 			children: [],
 			name: newName,
 			createdAt: serverTimestamp(),
@@ -28,6 +28,8 @@
 		};
 
 		const docRef = await addDoc(collection(db, 'folders'), newFolder);
+
+		newFolderMenuOpen = false;
 
 		goto(window.location.origin + '/folder/' + docRef.id);
 	};

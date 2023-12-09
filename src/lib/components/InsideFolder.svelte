@@ -1,14 +1,14 @@
 <script lang="ts">
-	import NewBlogMenu from '$lib/components/home/NewBlogMenu.svelte';
+	import NewBlogMenu from '$lib/components/folder/NewBlogMenu.svelte';
 	import type { User } from 'firebase/auth';
 	import { collection, getDocs, query, where, documentId } from 'firebase/firestore';
 	import { db, auth } from '$lib/db/setup';
 	import { userStore } from '$lib/stores';
 	import type { IBlog, IFolder } from '$lib/types';
-	import BlogItem from '$lib/components/home/BlogItem.svelte';
+	import BlogItem from '$lib/components/folder/BlogItem.svelte';
 	import { slide } from 'svelte/transition';
-	import NewFolderMenu from './home/NewFolderMenu.svelte';
-	import FolderItem from './home/FolderItem.svelte';
+	import NewFolderMenu from './folder/NewFolderMenu.svelte';
+	import FolderItem from './folder/FolderItem.svelte';
 	import { goto } from '$app/navigation';
 
 	export let folderId: string;
@@ -93,8 +93,11 @@
 		}
 	};
 
+	const updateRemovedFolder = (id: string) => {
+		childFolders = [...childFolders.filter((folder) => folder.id !== id)];
+	};
+
 	$: if ($user && folderId) {
-		console.log('init');
 		getCurrentFolder($user);
 		getBlogs($user);
 		getFolders($user);
@@ -102,24 +105,28 @@
 </script>
 
 <div>
-	{#if currentFolder && folderId !== 'root'}
-		<div class="path">
+	<div class="path">
+		{#if currentFolder && folderId !== 'root'}
 			<button on:click={backPressed}
 				><span class="material-icons-outlined"> arrow_back_ios </span></button
 			>
 			<h1>{currentFolder.path}</h1>
-		</div>
-	{:else if folderId === 'root'}
-		<h1>Welcome, {$user?.displayName}</h1>
-	{:else}
-		<h1>Loading</h1>
-	{/if}
+		{:else if folderId === 'root'}
+			<h1>Welcome, {$user?.displayName}</h1>
+		{:else}
+			<h1>Loading</h1>
+		{/if}
+	</div>
 	<div class="content">
 		<div>
 			<h2>Folders</h2>
-			<div class="blogsContainer">
+			<div class="foldersContainer">
 				{#each childFolders as folder}
-					<FolderItem {folder} />
+					<FolderItem
+						{folder}
+						parentPath={currentFolder ? currentFolder.path : ''}
+						{updateRemovedFolder}
+					/>
 				{/each}
 			</div>
 		</div>
@@ -137,7 +144,7 @@
 	<NewFolderMenu
 		bind:newFolderMenuOpen
 		currentId={folderId}
-		currentPath={currentFolder ? currentFolder?.path : '/'}
+		currentPath={currentFolder ? currentFolder?.path : ''}
 	/>
 
 	<button class="addBtn" on:click={() => (addOptionsOpen = true)}> Add </button>
@@ -178,12 +185,15 @@
 		cursor: pointer;
 	}
 
-	.blogsContainer {
+	.blogsContainer,
+	.foldersContainer {
 		display: flex;
 		flex-wrap: wrap;
-		padding: 2rem;
 		width: 100%;
+
+		gap: 1rem;
 	}
+
 	.addBtn {
 		position: fixed;
 		bottom: 1rem;
