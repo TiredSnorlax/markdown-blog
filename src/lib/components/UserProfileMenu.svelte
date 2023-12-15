@@ -7,7 +7,7 @@
 
 	let user = userStore(auth);
 
-	$: console.log('current user: ', user);
+	$: console.log('current user: ', $user?.displayName);
 
 	const signIn = () => {
 		const provider = new GoogleAuthProvider();

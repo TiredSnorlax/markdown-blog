@@ -2,10 +2,10 @@
 	import { ref, listAll, getDownloadURL, uploadBytes, deleteObject } from 'firebase/storage';
 	import { auth, storage } from '$lib/db/setup';
 	import { userStore } from '$lib/stores';
+	import MenuWrapper from '$lib/components/MenuWrapper.svelte';
 
 	export let blogId: string;
 	export let imageMenuOpen: boolean;
-	export let toggleImageMenu: () => void;
 
 	interface IImage {
 		url: string;
@@ -131,104 +131,77 @@
 	}
 </script>
 
-{#if imageMenuOpen}
-	<button class="background" on:click|self={toggleImageMenu}>
-		<div class="menu">
-			{#if uploadOpen}
-				<div class="uploadSection">
-					<h2>Upload Files</h2>
-					<input
-						type="file"
-						accept="image/*"
-						bind:this={fileInputElement}
-						on:change={handleFileSelection}
-						multiple
-						hidden
-					/>
-					{#if imageFilesToUpload}
-						<ol>
-							{#each imageFilesToUpload as imageFile}
-								<li>
-									<p>{imageFile.name}</p>
-								</li>
-							{/each}
-						</ol>
-					{/if}
-					<div
-						class="dropzone"
-						bind:this={uploadDropZoneEle}
-						on:dragover={dragOverHandler}
-						on:dragend={endDrag}
-						on:dragleave={endDrag}
-						on:drop={dropHandler}
-					>
-						<p>
-							Drag images here or
-							<button class="browseBtn" on:click={openFileExplorer}>Browse</button>
-						</p>
-					</div>
-					<div class="btnContainer">
-						{#if imageFilesToUpload && imageFilesToUpload.length > 0}
-							<button class="cancelBtn" on:click={() => (imageFilesToUpload = null)}>Reset</button>
-							<button class="uploadBtn" on:click={uploadPressed}
-								>{loading ? 'Loading' : 'Upload'}</button
-							>
-						{:else}
-							<button class="cancelBtn" on:click={closeUploadSection}>Cancel</button>
-						{/if}
-					</div>
-				</div>
-			{:else}
-				<h2>Uploaded images</h2>
-				{#if images && images.length > 0}
-					<div class="imageList">
-						{#each images as image}
-							<div class="imageItem">
-								<img src={image.url} title={image.name} alt="" />
-								<div>
-									<button on:click={() => copyToClipboard(image.url)}>{image.name}</button>
-								</div>
-								<button class="removeBtn" on:click={() => deleteImage(image.name)}
-									><span class="material-icons-outlined"> remove </span></button
-								>
-							</div>
-						{/each}
-					</div>
-				{:else}
-					<p style="margin-bottom: 1rem;">There are no images uploaded</p>
-				{/if}
-				<button class="addFileBtn" on:click={() => (uploadOpen = true)}>Add Image</button>
+<MenuWrapper bind:open={imageMenuOpen}>
+	{#if uploadOpen}
+		<div class="uploadSection">
+			<h2>Upload Files</h2>
+			<input
+				type="file"
+				accept="image/*"
+				bind:this={fileInputElement}
+				on:change={handleFileSelection}
+				multiple
+				hidden
+			/>
+			{#if imageFilesToUpload}
+				<ol>
+					{#each imageFilesToUpload as imageFile}
+						<li>
+							<p>{imageFile.name}</p>
+						</li>
+					{/each}
+				</ol>
 			{/if}
+			<div
+				class="dropzone"
+				bind:this={uploadDropZoneEle}
+				on:dragover={dragOverHandler}
+				on:dragend={endDrag}
+				on:dragleave={endDrag}
+				on:drop={dropHandler}
+			>
+				<p>
+					Drag images here or
+					<button class="browseBtn" on:click={openFileExplorer}>Browse</button>
+				</p>
+			</div>
+			<div class="btnContainer">
+				{#if imageFilesToUpload && imageFilesToUpload.length > 0}
+					<button class="cancelBtn" on:click={() => (imageFilesToUpload = null)}>Reset</button>
+					<button class="uploadBtn" on:click={uploadPressed}
+						>{loading ? 'Loading' : 'Upload'}</button
+					>
+				{:else}
+					<button class="cancelBtn" on:click={closeUploadSection}>Cancel</button>
+				{/if}
+			</div>
 		</div>
-	</button>
-{/if}
+	{:else}
+		<h2>Uploaded images</h2>
+		{#if images && images.length > 0}
+			<div class="imageList">
+				{#each images as image}
+					<div class="imageItem">
+						<img src={image.url} title={image.name} alt="" />
+						<div>
+							<button on:click={() => copyToClipboard(image.url)}>{image.name}</button>
+						</div>
+						<button class="removeBtn" on:click={() => deleteImage(image.name)}
+							><span class="material-icons-outlined"> remove </span></button
+						>
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<p style="margin-bottom: 1rem;">There are no images uploaded</p>
+		{/if}
+		<button class="addFileBtn" on:click={() => (uploadOpen = true)}>Add Image</button>
+	{/if}
+</MenuWrapper>
 
 <style>
 	button {
 		cursor: pointer;
-	}
-
-	.background {
-		background: #00000050;
-		position: fixed;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		border: none;
-
-		z-index: 1000;
-		cursor: default;
-	}
-
-	.menu {
-		padding: 1rem;
-		background: #ffffff;
-		border-radius: 1rem;
 	}
 
 	img {

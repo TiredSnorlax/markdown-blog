@@ -10,38 +10,61 @@ export const surroundSelectedText = (token: string) => {
 		const selectedValue = sel?.toString();
 		if (sel && sel.rangeCount) {
 			range = sel.getRangeAt(0);
+			const rangeOffset = range.startOffset;
 			// No highlighted
 			if (range.startOffset === range.endOffset && range.startContainer === range.endContainer) {
-				console.log(range.startOffset);
+				insertString(token);
+				insertString(token);
 
-				range.insertNode(document.createTextNode(token));
-				range.insertNode(document.createTextNode(token));
+				const newRange = document.createRange();
 
-				sel.setPosition(range.startContainer, range.startOffset);
-
-				for (let i = 0; i < token.length; i++) {
-					sel.modify('move', 'right', 'character');
-				}
-			} else {
-				const nodeToSurround = document.createTextNode(selectedValue || '');
-
-				range.deleteContents();
-				range.insertNode(document.createTextNode(token));
-				range.insertNode(nodeToSurround);
-				range.insertNode(document.createTextNode(token));
-				sel.setPosition(range.startContainer, range.startOffset);
+				if (!sel.anchorNode) return;
+				newRange.setStart(sel.anchorNode, 0);
+				newRange.setEnd(sel.anchorNode, 0);
 
 				sel.removeAllRanges();
 
-				for (let i = 0; i < token.length; i++) {
+				sel.addRange(newRange);
+
+				for (let i = 0; i < rangeOffset + token.length; i++) {
 					sel.modify('move', 'right', 'character');
 				}
+			} else {
+				const inside = selectedValue || '';
+
+				range.deleteContents();
+
+				// I have no idea why the following code works
+				insertString(token);
+				insertString(inside);
+				insertString(token);
 
 				const newRange = document.createRange();
-				newRange.setStart(nodeToSurround, 0);
-				newRange.setEnd(nodeToSurround, selectedValue ? selectedValue.length : 0);
+
+				if (!sel.anchorNode) return;
+				newRange.setStart(sel.anchorNode, 0);
+				newRange.setEnd(sel.anchorNode, 0);
+
+				sel.removeAllRanges();
 
 				sel.addRange(newRange);
+
+				for (let i = 0; i < rangeOffset + token.length + inside.length; i++) {
+					sel.modify('move', 'right', 'character');
+				}
+				// range.insertNode(document.createTextNode(token));
+				// range.insertNode(nodeToSurround);
+				// range.insertNode(document.createTextNode(token));
+				// sel.setPosition(range.startContainer, range.startOffset);
+				//
+				// sel.removeAllRanges();
+				//
+				//
+				// const newRange = document.createRange();
+				// newRange.setStart(nodeToSurround, 0);
+				// newRange.setEnd(nodeToSurround, selectedValue ? selectedValue.length : 0);
+				//
+				// sel.addRange(newRange);
 			}
 		}
 	} else {

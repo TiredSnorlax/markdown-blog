@@ -6,10 +6,13 @@
 	import { auth, db } from '$lib/db/setup';
 	import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 	import DeleteItemMenu from './DeleteItemMenu.svelte';
+	import DetailsMenu from './DetailsMenu.svelte';
 
 	export let parentPath: string;
 	export let folder: IFolder;
 	export let updateRemovedFolder: (id: string) => void;
+	export let updateFolderLastEdit: () => Promise<void>;
+	export let isOwner: boolean;
 
 	let moreBtnEle: HTMLSpanElement;
 
@@ -17,6 +20,7 @@
 
 	let renameMenuOpen = false;
 	let deleteMenuOpen = false;
+	let detailsMenuOpen = false;
 
 	let newName = '';
 
@@ -34,6 +38,8 @@
 			path: parentPath + '/' + newName
 		});
 
+		await updateFolderLastEdit();
+
 		renameMenuOpen = false;
 		folder.name = newName;
 		newName = '';
@@ -44,6 +50,7 @@
 		if (!folder.id) return;
 		const docRef = doc(db, 'folders', folder.id);
 		await deleteDoc(docRef);
+		await updateFolderLastEdit();
 		updateRemovedFolder(folder.id);
 	};
 </script>
@@ -56,28 +63,41 @@
 	>
 	{#if optionsOpen}
 		<div class="options" transition:slide>
+			{#if isOwner}
+				<button
+					on:click={() => {
+						renameMenuOpen = true;
+						optionsOpen = false;
+					}}>Rename</button
+				>
+				<button
+					on:click={() => {
+						deleteMenuOpen = true;
+						optionsOpen = false;
+					}}>Delete</button
+				>
+			{/if}
 			<button
 				on:click={() => {
-					renameMenuOpen = true;
+					detailsMenuOpen = true;
 					optionsOpen = false;
-				}}>Rename</button
+				}}>Details</button
 			>
-			<button
-				on:click={() => {
-					deleteMenuOpen = true;
-					optionsOpen = false;
-				}}>Delete</button
-			>
-			<button>Details</button>
 		</div>
 	{/if}
-	<RenameFolderMenu bind:renameMenuOpen bind:newName {renameFolder} />
+	<RenameFolderMenu
+		fileType={'Folder'}
+		bind:renameMenuOpen
+		bind:newName
+		renameFunction={renameFolder}
+	/>
 	<DeleteItemMenu
 		fileType={'Folder'}
 		fileName={folder.name}
 		deleteFunction={deleteFolder}
 		bind:deleteMenuOpen
 	/>
+	<DetailsMenu blog={null} {folder} bind:detailsMenuOpen />
 </div>
 
 <style>

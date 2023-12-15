@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { enterPressed, pasteText, insertString, getParentNodeOfLine } from '$lib/editor/helper';
+	import {
+		enterPressed,
+		pasteText,
+		insertString,
+		getParentNodeOfLine,
+		tabPressed
+	} from '$lib/editor/helper';
 	import type { IBlog } from '$lib/types';
 
 	export let blog: IBlog | null;
@@ -38,9 +44,12 @@
 
 	const sanitiseInput = () => {
 		let sanitised = '';
-		for (const child of inputTextArea.children) {
+		// console.log(inputTextArea);
+		for (const child of inputTextArea.childNodes) {
 			if (child.textContent) {
 				sanitised += child.textContent + '\n';
+			} else if (child.nodeType === 1) {
+				continue;
 			} else {
 				sanitised += '\n';
 			}
@@ -64,9 +73,8 @@
 		}
 		typeTimeout = setTimeout(pressRender, 1000);
 		if (e.key === 'Tab') {
-			console.log('tab');
 			e.preventDefault();
-			insertString('\t');
+			tabPressed();
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			enterPressed();
@@ -109,6 +117,12 @@
 
 		border: none;
 		outline: none;
+
+		overflow-y: auto;
+	}
+
+	:global(.editor > br) {
+		display: none;
 	}
 
 	:global(.editor > div) {

@@ -25,8 +25,23 @@ export const rules = [
 	]
 ];
 
+export const unorderedListRules = [/^(\t*\*[^\S\t\n\r].+)/gm, 'LIST'];
+export const orderedListRules = [
+	/^(\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.[^\S\t\n\r].*)/gm,
+	'LIST'
+];
+export const preOpeningRules = [/^`{3}(.+)?/gm, 'PRE'];
+export const blockQuoteRules = [/^>+(.*)/gm, 'BLOCKQUOTE'];
+export const tableRowRules = [/^\|(.+)\|(.+)\|/gm, 'TABLE'];
+export const tableAlignmentRules = [/^\|(\s*[-:]+\s*)\|(\s*[-:]+\s*)\|/gm, 'TABLE_FORMAT'];
+
 export const enterSpecialRules = [
 	[/^(\t*\*[^\S\t\n\r].+)/gm, 'UNORDERED_LIST'],
 	[/^\t*((?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9]))\.[^\S\t\n\r].*/gm, 'ORDERED_LIST'],
-	[/^`{3}(.+)?/gm, 'PRE']
+	[/^>+(.*)/gm, 'BLOCKQUOTE']
+];
+
+export const tabSpecialRules = [
+	[/^(\t*)\*\s$/gm, 'UNORDERED_LIST'],
+	[/^(\t*)(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.\s$/gm, 'ORDERED_LIST']
 ];

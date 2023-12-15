@@ -1,14 +1,102 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import type { IBlog } from '$lib/types';
+	import { slide } from 'svelte/transition';
+	import { userStore } from '$lib/stores';
+	import { auth, db } from '$lib/db/setup';
+	import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+	import RenameFolderMenu from './RenameFolderMenu.svelte';
+	import DeleteItemMenu from './DeleteItemMenu.svelte';
+	import DetailsMenu from './DetailsMenu.svelte';
+
 	export let blog: IBlog;
+	export let updateRemovedFolder: (id: string) => void;
+	export let updateFolderLastEdit: () => Promise<void>;
+	export let isOwner: boolean;
+
+	let moreBtnEle: HTMLSpanElement;
+
+	let optionsOpen = false;
+
+	let renameMenuOpen = false;
+	let deleteMenuOpen = false;
+	let detailsMenuOpen = false;
+
+	let newTitle = '';
+
+	let user = userStore(auth);
+
+	const toggleOptions = () => {
+		optionsOpen = !optionsOpen;
+	};
+
+	const renameBlog = async () => {
+		if (!$user || !blog.id) return;
+		const docRef = doc(db, 'blogs', blog.id);
+		await updateDoc(docRef, {
+			title: newTitle
+		});
+
+		await updateFolderLastEdit();
+
+		renameMenuOpen = false;
+		blog.title = newTitle;
+		newTitle = '';
+		optionsOpen = false;
+	};
+
+	const deleteBlog = async () => {
+		if (!blog.id) return;
+		const docRef = doc(db, 'blogs', blog.id);
+		await deleteDoc(docRef);
+		await updateFolderLastEdit();
+		updateRemovedFolder(blog.id);
+	};
 </script>
 
-<button class="item">
+<div class="item">
 	<span class="material-icons-outlined"> article </span>
-	<a href={window.location.origin + '/blog/' + blog.id}>{blog.title}</a>
-	<button><span class="material-icons-outlined"> more_vert </span></button>
-</button>
+	<a href={window.location.origin + '/blog/' + blog.id + '/edit'}>{blog.title}</a>
+	<button on:click={toggleOptions} class="optionsBtn"
+		><span bind:this={moreBtnEle} class="material-icons-outlined"> more_vert </span></button
+	>
+	{#if optionsOpen}
+		<div class="options" transition:slide>
+			{#if isOwner}
+				<button
+					on:click={() => {
+						renameMenuOpen = true;
+						optionsOpen = false;
+					}}>Rename</button
+				>
+				<button
+					on:click={() => {
+						deleteMenuOpen = true;
+						optionsOpen = false;
+					}}>Delete</button
+				>
+			{/if}
+			<button
+				on:click={() => {
+					detailsMenuOpen = true;
+					optionsOpen = false;
+				}}>Details</button
+			>
+		</div>
+	{/if}
+	<RenameFolderMenu
+		fileType={'Blog'}
+		bind:renameMenuOpen
+		bind:newName={newTitle}
+		renameFunction={renameBlog}
+	/>
+	<DeleteItemMenu
+		fileType={'Folder'}
+		fileName={blog.title}
+		deleteFunction={deleteBlog}
+		bind:deleteMenuOpen
+	/>
+	<DetailsMenu {blog} folder={null} bind:detailsMenuOpen />
+</div>
 
 <style>
 	.item {
@@ -28,6 +116,8 @@
 		justify-content: space-between;
 		align-items: center;
 		gap: 1.5rem;
+
+		position: relative;
 	}
 
 	.item a {
@@ -59,5 +149,30 @@
 
 	.item button span {
 		display: flex;
+	}
+
+	.options {
+		padding-block: 1rem;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		position: absolute;
+		left: 100%;
+		top: 1rem;
+
+		background: white;
+		border-radius: 0.5rem;
+
+		box-shadow: 0 1px 2px 0 grey;
+
+		z-index: 50;
+	}
+
+	.options button {
+		border-radius: 0;
+		padding: 0.5rem;
+		width: 100%;
+		font-size: 1rem;
 	}
 </style>

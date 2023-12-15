@@ -4,11 +4,12 @@
 	import { auth, db } from '$lib/db/setup';
 	import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
-	import { slide } from 'svelte/transition';
+	import MenuWrapper from '../MenuWrapper.svelte';
 
 	export let newFolderMenuOpen: boolean;
 	export let currentPath: string | undefined;
 	export let currentId: string;
+	export let updateFolderLastEdit: () => Promise<void>;
 
 	let user = userStore(auth);
 
@@ -24,10 +25,12 @@
 			children: [],
 			name: newName,
 			createdAt: serverTimestamp(),
+			lastEdited: serverTimestamp(),
 			isPublic: false
 		};
 
 		const docRef = await addDoc(collection(db, 'folders'), newFolder);
+		await updateFolderLastEdit();
 
 		newFolderMenuOpen = false;
 
@@ -35,40 +38,16 @@
 	};
 </script>
 
-{#if newFolderMenuOpen}
-	<button class="background" on:click|self={() => (newFolderMenuOpen = false)}>
-		<div class="menu" transition:slide>
-			<input class="titleInput" bind:value={newName} placeholder="Title of Folder" />
+<MenuWrapper bind:open={newFolderMenuOpen}>
+	<input class="titleInput" bind:value={newName} placeholder="Title of Folder" />
 
-			<div class="btnContainer">
-				<button on:click={() => (newFolderMenuOpen = false)}>Cancel</button>
-				<button on:click={createNewFolder}>Create</button>
-			</div>
-		</div>
-	</button>
-{/if}
+	<div class="btnContainer">
+		<button on:click={() => (newFolderMenuOpen = false)}>Cancel</button>
+		<button on:click={createNewFolder}>Create</button>
+	</div>
+</MenuWrapper>
 
 <style>
-	.background {
-		position: fixed;
-		inset: 0;
-		width: 100%;
-
-		border: none;
-		outline: none;
-		background: rgba(0, 0, 0, 0.3);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 100;
-	}
-	.menu {
-		padding: 1rem;
-		background: white;
-
-		border-radius: 0.5rem;
-	}
-
 	.titleInput {
 		font-size: 1.5rem;
 		border: 1px solid grey;

@@ -1,4 +1,4 @@
-import { enterSpecialRules } from '$lib/parser/rules';
+import { enterSpecialRules, tabSpecialRules } from '$lib/parser/rules';
 
 export const getParentNodeOfLine = () => {
 	const sel = window.getSelection();
@@ -14,7 +14,6 @@ export const getParentNodeOfLine = () => {
 export const checkIfEditable = (parent: Node | null | undefined) => {
 	if (!parent) return false;
 	const ele = document.getElementById('editor');
-	console.log(!ele?.contains(parent));
 	return !ele?.contains(parent);
 };
 
@@ -27,7 +26,6 @@ export const getCurrentLine = () => {
 
 export const getIndentLevel = () => {
 	const currentLine = getCurrentLine();
-	console.log('current line in indent level', currentLine);
 	if (!currentLine) return 0;
 
 	const tabArray = currentLine?.match(/^[\t]+/);
@@ -49,45 +47,63 @@ export const insertString = (str: string) => {
 	if (!sel) return;
 
 	const range = sel.getRangeAt(0);
-	range.deleteContents();
 
-	const tabNode = document.createTextNode(str);
-	console.log(tabNode);
-	range.insertNode(tabNode);
-	range.setStartAfter(tabNode);
-	range.setEndAfter(tabNode);
+	const beforeCursor = range.startContainer.textContent?.slice(0, range.startOffset);
+	const afterCursor = range.startContainer.textContent?.slice(range.startOffset);
+
+	console.log(beforeCursor, afterCursor);
+
+	parentNode.textContent = beforeCursor + str + afterCursor;
+
+	for (let i = 0; i < (beforeCursor ? beforeCursor.length : 0) + str.length; i++) {
+		console.log('move');
+		sel.modify('move', 'forward', 'character');
+	}
+
+	// const tabNode = document.createTextNode(str);
+	// range.insertNode(tabNode);
+	// range.setStartAfter(tabNode);
+	// range.setEndAfter(tabNode);
 };
 
 export const insertOnNewLine = (contentToAdd: string, collapseStart: boolean) => {
 	const parentNode = getParentNodeOfLine() as HTMLDivElement;
 	if (checkIfEditable(parentNode)) return;
 
-	console.log('new func');
 	const sel = window.getSelection();
+
+	if (!sel) return;
 
 	const div = document.createElement('div');
 
-	// let inner: HTMLBRElement | Text = document.createElement('br');
-	// if (contentToAdd) {
-	//   inner = document.createTextNode(contentToAdd!);
-	// }
-
 	const inner = document.createTextNode(contentToAdd);
-	console.log(inner);
-	// let br = document.createElement("br");
 
 	div.appendChild(inner);
-	// div.appendChild(br);
 
 	const isEditor = isParentTheEditor(parentNode);
 
 	if (isEditor) {
-		parentNode.prepend(div);
+		// parentNode.append(div);
+		// console.log(parentNode.firstChild);
+
+		const firstChild = parentNode.firstChild;
+		firstChild?.after(div);
 	} else {
 		parentNode.after(div);
 	}
-	sel?.removeAllRanges();
-	sel?.collapse(div.firstChild, collapseStart ? 0 : contentToAdd.length);
+
+	sel.removeAllRanges();
+	sel.collapse(div.firstChild, collapseStart ? 0 : contentToAdd.length);
+};
+
+const gotoEndOfNode = (sel: Selection, targetNode: Node) => {
+	const range = document.createRange();
+	range.setStart(targetNode, targetNode.childNodes.length);
+
+	range.collapse(true);
+
+	sel.removeAllRanges();
+	sel.addRange(range);
 };
 
 export const enterPressed = () => {
@@ -95,18 +111,17 @@ export const enterPressed = () => {
 	if (checkIfEditable(parentNode)) return;
 
 	const indentLevel = getIndentLevel();
-	const currentLine = getCurrentLine();
+	console.log(indentLevel);
+	// const currentLine = getCurrentLine();
 
-	console.log(currentLine);
 	const sel = window.getSelection();
+	console.log(sel, 'enter');
 	if (!sel) return;
-	console.log(sel);
-	const lineText = sel.focusNode?.nodeValue;
+	const lineText = parentNode?.textContent;
 
 	const range = sel.getRangeAt(0);
 
 	if (range.startOffset !== range.endOffset) {
-		console.log(range);
 		const existingText = range.toString();
 		range.deleteContents();
 		insertOnNewLine(existingText, true);
@@ -118,21 +133,65 @@ export const enterPressed = () => {
 	if (lineText) {
 		textBeforeCursor = lineText.slice(0, sel.focusOffset);
 		textAfterCursor = lineText.slice(sel.focusOffset);
+		console.log(textBeforeCursor, textAfterCursor);
 		if (sel.anchorNode) sel.anchorNode.nodeValue = textBeforeCursor;
 		textAfterCursor = checkLineForSpecialChars(lineText, textAfterCursor, indentLevel);
+		insertOnNewLine(textAfterCursor, false);
+	} else {
+		insertOnNewLine('', true);
+	}
+};
+
+export const tabPressed = () => {
+	const parentNode = getParentNodeOfLine();
+	if (checkIfEditable(parentNode)) return;
+
+	console.log(parentNode);
+
+	// const currentLine = getCurrentLine();
+
+	const sel = window.getSelection();
+	console.log(sel);
+	if (!sel) return;
+	const lineText = sel.focusNode?.textContent;
+
+	if (lineText) {
+		for (const block of tabSpecialRules) {
+			if (lineText.match(block[0])) {
+				if (parentNode) {
+					console.log(parentNode);
+					parentNode.textContent = '\t' + parentNode.textContent;
+					gotoEndOfNode(sel, parentNode);
+				}
+
+				// if (parentNode) {
+				// 	parentNode?.insertBefore(document.createTextNode('\t'), parentNode.firstChild);
+				// 	// gotoEndOfNode(sel, parentNode);
+				// }
+				return;
+			}
+		}
 	}
 
-	insertOnNewLine(textAfterCursor, true);
+	insertString('\t');
 };
 
 const checkLineForSpecialChars = (lineText: string, textToAdd: string, indentLevel: number) => {
 	let text = textToAdd;
+	console.log(lineText);
 	for (const block of enterSpecialRules) {
 		if (lineText.match(block[0])) {
-			console.log(block[1]);
 			switch (block[1]) {
+				case 'BLOCKQUOTE': {
+					const number = (lineText.match(/>/g) || []).length;
+					const arrows = '>'.repeat(number);
+					text = arrows + ' ' + textToAdd;
+					break;
+				}
 				case 'UNORDERED_LIST': {
-					text = '* ' + textToAdd;
+					console.log('ul fdsjfkds');
+					const padding = '\t'.repeat(indentLevel);
+					text = padding + '* ' + textToAdd;
 					break;
 				}
 				case 'ORDERED_LIST': {
@@ -144,7 +203,7 @@ const checkLineForSpecialChars = (lineText: string, textToAdd: string, indentLev
 				default:
 					break;
 			}
-			return text;
+			break;
 		}
 	}
 	return text;
@@ -179,7 +238,6 @@ export const pasteText = (text: string) => {
 		insertOnNewLine(formatted[i], false);
 	}
 
-	console.log(selection);
 	if (selection) {
 		selection.removeAllRanges();
 		selection.addRange(range);

@@ -17,6 +17,8 @@ export interface IBlog {
 	title: string;
 	content: string;
 	createdAt: FirestoreTimeStamp;
+	lastEdited: FirestoreTimeStamp;
+	isPublic: boolean;
 	id?: string;
 }
 
@@ -26,6 +28,7 @@ export interface IFolder {
 	children: string[];
 	name: string;
 	createdAt: FirestoreTimeStamp;
+	lastEdited: FirestoreTimeStamp;
 	id?: string;
 	ownerId: string;
 	isPublic: boolean;

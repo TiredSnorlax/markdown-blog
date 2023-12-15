@@ -1,45 +1,26 @@
 <script lang="ts">
-	import { slide } from 'svelte/transition';
+	import MenuWrapper from '../MenuWrapper.svelte';
 
+	export let fileType: string;
 	export let renameMenuOpen: boolean;
 	export let newName: string;
-	export let renameFolder: () => void;
+	export let renameFunction: () => void;
 </script>
 
-{#if renameMenuOpen}
-	<button class="background" on:click|self={() => (renameMenuOpen = false)}>
-		<div class="menu" transition:slide>
-			<input class="titleInput" bind:value={newName} placeholder="New name" />
+<MenuWrapper bind:open={renameMenuOpen}>
+	<input
+		class="titleInput"
+		bind:value={newName}
+		placeholder={fileType === 'Blog' ? 'New title of blog' : 'New name for folder'}
+	/>
 
-			<div class="btnContainer">
-				<button on:click={() => (renameMenuOpen = false)}>Cancel</button>
-				<button on:click={renameFolder}>Rename</button>
-			</div>
-		</div>
-	</button>
-{/if}
+	<div class="btnContainer">
+		<button on:click={() => (renameMenuOpen = false)}>Cancel</button>
+		<button on:click={renameFunction}>Rename</button>
+	</div>
+</MenuWrapper>
 
 <style>
-	.background {
-		position: fixed;
-		inset: 0;
-		width: 100%;
-
-		border: none;
-		outline: none;
-		background: rgba(0, 0, 0, 0.3);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 100;
-	}
-	.menu {
-		padding: 1rem;
-		background: white;
-
-		border-radius: 0.5rem;
-	}
-
 	.titleInput {
 		font-size: 1.5rem;
 		border: 1px solid grey;

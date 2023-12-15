@@ -4,7 +4,7 @@
 	import type { IBlog } from '$lib/types';
 
 	import { page } from '$app/stores';
-	import { doc, getDoc, updateDoc } from 'firebase/firestore';
+	import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 	import { db, auth } from '$lib/db/setup';
 	import { onMount } from 'svelte';
 	import { userStore } from '$lib/stores';
@@ -42,7 +42,9 @@
 
 	const updateDb = async (content: string) => {
 		console.log('updating db');
-		await updateDoc(docRef, { content, title: newTitle }).then(() => console.log('Update done'));
+		await updateDoc(docRef, { content, title: newTitle, lastEdited: serverTimestamp() }).then(() =>
+			console.log('Update done')
+		);
 	};
 
 	const updateOutput = (content: string) => {
@@ -56,7 +58,7 @@
 
 {#if isAllowed}
 	<div class="container">
-		<ToolBar bind:newTitle blogId={blog?.id || ''} />
+		<ToolBar bind:newTitle {blog} />
 		<main>
 			<section class="left">
 				<TextEditor {updateOutput} {updateDb} {blog} />

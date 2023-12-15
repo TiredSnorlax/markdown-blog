@@ -3,11 +3,12 @@
 	import { userStore } from '$lib/stores';
 	import { auth, db } from '$lib/db/setup';
 	import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
-	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import MenuWrapper from '../MenuWrapper.svelte';
 
 	export let newBlogMenuOpen: boolean;
 	export let currentId: string;
+	export let updateFolderLastEdit: () => Promise<void>;
 
 	let user = userStore(auth);
 
@@ -20,51 +21,27 @@
 			ownerId: $user.uid,
 			title: newTitle,
 			content: 'Edit me',
-			createdAt: serverTimestamp()
+			createdAt: serverTimestamp(),
+			lastEdited: serverTimestamp()
 		};
-		console.log(newBlog);
 
 		const docRef = await addDoc(collection(db, 'blogs'), newBlog);
-		console.log('Document written with ID: ', docRef.id);
+		await updateFolderLastEdit();
 
 		goto(window.location.origin + '/blog/' + docRef.id + '/edit');
 	};
 </script>
 
-{#if newBlogMenuOpen}
-	<button class="background" on:click|self={() => (newBlogMenuOpen = false)}>
-		<div class="menu" transition:slide>
-			<input class="titleInput" bind:value={newTitle} placeholder="Title of New Blog" />
+<MenuWrapper bind:open={newBlogMenuOpen}>
+	<input class="titleInput" bind:value={newTitle} placeholder="Title of New Blog" />
 
-			<div class="btnContainer">
-				<button on:click={() => (newBlogMenuOpen = false)}>Cancel</button>
-				<button on:click={createNewBlog}>Create</button>
-			</div>
-		</div>
-	</button>
-{/if}
+	<div class="btnContainer">
+		<button on:click={() => (newBlogMenuOpen = false)}>Cancel</button>
+		<button on:click={createNewBlog}>Create</button>
+	</div>
+</MenuWrapper>
 
 <style>
-	.background {
-		position: fixed;
-		inset: 0;
-		width: 100%;
-
-		border: none;
-		outline: none;
-		background: rgba(0, 0, 0, 0.3);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 100;
-	}
-	.menu {
-		padding: 1rem;
-		background: white;
-
-		border-radius: 0.5rem;
-	}
-
 	.titleInput {
 		font-size: 1.5rem;
 		border: 1px solid grey;

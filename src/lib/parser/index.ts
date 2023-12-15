@@ -1,4 +1,11 @@
-import { rules } from '$lib/parser/rules';
+import {
+	rules,
+	blockQuoteRules,
+	unorderedListRules,
+	orderedListRules,
+	preOpeningRules,
+	tableRowRules
+} from '$lib/parser/rules';
 
 interface Token {
 	type: string;
@@ -10,14 +17,13 @@ interface Block {
 	children: string[];
 }
 
-// TODO: convert to array to loop through
-const unorderedListRules = [/^(\t*\*[^\S\t\n\r].+)/gm, '$1', 'LIST'];
-const orderedListRules = [
-	/^(\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.[^\S\t\n\r].*)/gm,
-	'$1',
-	'LIST'
-];
-const preOpeningRules = [/^`{3}(.+)?/gm, '$1', 'PRE'];
+const convertDocToHTML = (content: string) => {
+	const tokens = tokenise(content);
+	if (!tokens) return;
+	const blocks = groupTokens(tokens);
+	const html = convertToHtml(blocks);
+	return html;
+};
 
 export const tokenise = (doc: string) => {
 	const tokens: Token[] = [];
@@ -27,14 +33,18 @@ export const tokenise = (doc: string) => {
 		const line = splitByLine[i];
 		let token: Token;
 
-		if (line.match(unorderedListRules[0])) {
+		if (line.match(blockQuoteRules[0])) {
+			token = { type: blockQuoteRules[1] as string, content: line };
+		} else if (line.match(unorderedListRules[0])) {
 			// const match = line.replace(unorderedListRules[0], unorderedListRules[1] as string);
-			token = { type: unorderedListRules[2] as string, content: line };
+			token = { type: unorderedListRules[1] as string, content: line };
 		} else if (line.match(orderedListRules[0])) {
 			// const match = line.replace(orderedListRules[0], orderedListRules[1] as string);
-			token = { type: unorderedListRules[2] as string, content: line };
+			token = { type: unorderedListRules[1] as string, content: line };
 		} else if (line.match(preOpeningRules[0])) {
-			token = { type: preOpeningRules[2] as string, content: line };
+			token = { type: preOpeningRules[1] as string, content: line };
+		} else if (line.match(tableRowRules[0])) {
+			token = { type: tableRowRules[1] as string, content: line };
 		} else {
 			token = { type: 'INLINE', content: line };
 		}
@@ -63,7 +73,6 @@ export const groupTokens = (tokens: Token[]) => {
 		} else if (!currentBlock) {
 			currentBlock = { type: token.type, children: [token.content] };
 			// Check for ending pre tag
-
 			if (token.type === 'PRE') {
 				const relativeClosingIndex = tokens.slice(i + 1).findIndex((token) => token.type === 'PRE');
 				if (relativeClosingIndex) {
@@ -74,6 +83,14 @@ export const groupTokens = (tokens: Token[]) => {
 					i += relativeClosingIndex + 1;
 					blocks.push(currentBlock);
 					currentBlock = null;
+				}
+			} else if (token.type === 'TABLE') {
+				if (i < tokens.length) {
+					const nextToken = tokens[i + 1];
+					if (nextToken.type === 'TABLE_FORMAT') {
+						currentBlock.children.push(nextToken.content);
+						i++;
+					}
 				}
 			}
 		} else if (currentBlock && currentBlock.type === token.type) {
@@ -100,7 +117,10 @@ export const convertToHtml = (blocks: Block[]) => {
 	const htmlList: string[] = [];
 	for (const block of blocks) {
 		let html = '';
-		if (block.type === 'INLINE') {
+		// TODO: convert to swtich statement
+		if (block.type === 'BLOCKQUOTE') {
+			html = handleBlockQuotes(block);
+		} else if (block.type === 'INLINE') {
 			html = block.children[0];
 			html = convertInlineToHtml(html);
 			if (html.length > 0) {
@@ -114,6 +134,8 @@ export const convertToHtml = (blocks: Block[]) => {
 			html = handleLists(block);
 		} else if (block.type === 'PRE') {
 			html = handlePreBlocks(block);
+		} else if (block.type === 'TABLE') {
+			html = handleTables(block);
 		}
 		htmlList.push(html);
 	}
@@ -153,12 +175,16 @@ export const handleLists = (listBlock: Block) => {
 		child = convertInlineToHtml(child);
 
 		const currentTag = currentListType === 'UNORDERED_LIST' ? ['<ul>', '</ul>'] : ['<ol>', '</ol>'];
-		// const prevTag = prevListType === "UNORDERED_LIST" ? ["<ul>", "</ul>"] : ["<ol>", "</ol>"];
 
 		// If start of list or nothing before list
-		if (currentIndent > prevIndent || html.length === 0) {
+		if (html.length === 0) {
 			html += currentTag[0];
 			endTagStack.push(currentTag[1]);
+		} else if (currentIndent > prevIndent) {
+			for (let i = 0; i < currentIndent - prevIndent; i++) {
+				html += currentTag[0];
+				endTagStack.push(currentTag[1]);
+			}
 		} else if (currentIndent < prevIndent) {
 			// end current list indent level
 			for (let i = 0; i < prevIndent - currentIndent; i++) {
@@ -205,6 +231,45 @@ export const handlePreBlocks = (listBlock: Block) => {
 		html += listBlock.children[i] + '\n';
 	}
 	html += '</pre>\n';
+
+	return html;
+};
+
+export const handleBlockQuotes = (listBlock: Block) => {
+	let content = '';
+	for (const child of listBlock.children) {
+		if (child.at(1) === ' ') {
+			content = content.concat(child.slice(2) + '\n');
+		} else {
+			content = content.concat(child.slice(1) + '\n');
+		}
+	}
+	// console.log(content);
+	const innerHTML = convertDocToHTML(content);
+
+	return '<blockquote>' + innerHTML + '</blockquote>';
+};
+
+export const handleTables = (listBlock: Block) => {
+	let html = '<table> <tr>';
+	const headerData = listBlock.children[0];
+	const headerValues = headerData.slice(1, headerData.length - 1).split('|');
+
+	for (const header of headerValues) {
+		html += '<th>' + header + '</th>';
+	}
+
+	html += '</tr>';
+	for (let i = 2; i < listBlock.children.length; i++) {
+		html += '<tr>';
+		const dataValues = listBlock.children[i].slice(1, headerData.length - 1).split('|');
+		for (const data of dataValues) {
+			html += '<td>' + data + '</td>';
+		}
+		html += '</tr>';
+	}
+
+	html += '</table>';
 
 	return html;
 };

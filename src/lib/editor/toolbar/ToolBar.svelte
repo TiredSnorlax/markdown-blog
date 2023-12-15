@@ -1,12 +1,16 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import type { IBlog } from '$lib/types';
 	import { surroundSelectedText, toNewLine } from '.';
 	import { insertOnNewLine } from '../helper';
 	import ImageMenu from './ImageMenu.svelte';
+	import ShareBlogMenu from './ShareBlogMenu.svelte';
 
 	export let newTitle: string | null = 'Default';
-	export let blogId: string;
+	export let blog: IBlog | null;
 
 	let imageMenuOpen = false;
+	let shareMenuOpen = false;
 
 	const addCodeBlock = () => {
 		let sel = window.getSelection();
@@ -22,17 +26,13 @@
 		}
 	};
 
-	const toggleImageMenu = () => {
-		imageMenuOpen = !imageMenuOpen;
-	};
-
 	const addImageBlock = () => {
 		toNewLine('![Description](URL)');
 	};
 </script>
 
 <div class="toolBar">
-	<a href="./../../">
+	<a href={browser ? window.location.origin + '/folder/' + blog?.parentId : ''}>
 		<span class="material-icons-outlined"> keyboard_backspace </span>
 	</a>
 	<div class="buttons">
@@ -77,13 +77,20 @@
 			<p>Images</p>
 		</button>
 
-		<button on:click={toggleImageMenu}>
+		<button on:click={() => (imageMenuOpen = true)}>
 			<span class="material-icons-outlined"> upload_file </span>
 			<p>Upload</p>
 		</button>
 	</div>
-	<input type="text" class="newTitleInput" bind:value={newTitle} />
-	<ImageMenu {imageMenuOpen} {toggleImageMenu} {blogId} />
+	<div class="right">
+		<input type="text" class="newTitleInput" bind:value={newTitle} />
+		<button class="shareBtn" on:click={() => (shareMenuOpen = true)}>
+			<span class="material-icons-outlined"> share </span>
+			Share</button
+		>
+	</div>
+	<ImageMenu bind:imageMenuOpen blogId={blog && blog.id ? blog.id : ''} />
+	<ShareBlogMenu {blog} bind:shareMenuOpen />
 </div>
 
 <style>
@@ -167,6 +174,36 @@
 		width: auto;
 
 		position: absolute;
+	}
+
+	.right {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.right .shareBtn {
+		background: blue;
+		color: white;
+
+		width: initial;
+		height: initial;
+		padding: 0.5rem;
+		padding-inline: 1rem;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 1rem;
+
+		font-size: 1rem;
+
+		border-radius: 0.5rem;
+	}
+
+	.shareBtn span {
+		font-size: 1rem;
 	}
 
 	.newTitleInput {
