@@ -13,6 +13,7 @@ export const getParentNodeOfLine = () => {
 
 export const checkIfEditable = (parent: Node | null | undefined) => {
 	if (!parent) return false;
+	if (isParentTheEditor(parent)) return false;
 	const ele = document.getElementById('editor');
 	return !ele?.contains(parent);
 };
@@ -51,8 +52,6 @@ export const insertString = (str: string) => {
 	const beforeCursor = range.startContainer.textContent?.slice(0, range.startOffset);
 	const afterCursor = range.startContainer.textContent?.slice(range.startOffset);
 
-	console.log(beforeCursor, afterCursor);
-
 	parentNode.textContent = beforeCursor + str + afterCursor;
 
 	for (let i = 0; i < (beforeCursor ? beforeCursor.length : 0) + str.length; i++) {
@@ -86,8 +85,9 @@ export const insertOnNewLine = (contentToAdd: string, collapseStart: boolean) =>
 		// parentNode.append(div);
 		// console.log(parentNode.firstChild);
 
-		const firstChild = parentNode.firstChild;
-		firstChild?.after(div);
+		inner.textContent = '';
+		const lastChild = parentNode.lastChild;
+		lastChild?.after(div);
 	} else {
 		parentNode.after(div);
 	}
@@ -96,7 +96,7 @@ export const insertOnNewLine = (contentToAdd: string, collapseStart: boolean) =>
 	sel.collapse(div.firstChild, collapseStart ? 0 : contentToAdd.length);
 };
 
-const gotoEndOfNode = (sel: Selection, targetNode: Node) => {
+export const gotoEndOfNode = (sel: Selection, targetNode: Node | ChildNode) => {
 	const range = document.createRange();
 	range.setStart(targetNode, targetNode.childNodes.length);
 
@@ -111,11 +111,8 @@ export const enterPressed = () => {
 	if (checkIfEditable(parentNode)) return;
 
 	const indentLevel = getIndentLevel();
-	console.log(indentLevel);
-	// const currentLine = getCurrentLine();
 
 	const sel = window.getSelection();
-	console.log(sel, 'enter');
 	if (!sel) return;
 	const lineText = parentNode?.textContent;
 
@@ -133,7 +130,6 @@ export const enterPressed = () => {
 	if (lineText) {
 		textBeforeCursor = lineText.slice(0, sel.focusOffset);
 		textAfterCursor = lineText.slice(sel.focusOffset);
-		console.log(textBeforeCursor, textAfterCursor);
 		if (sel.anchorNode) sel.anchorNode.nodeValue = textBeforeCursor;
 		textAfterCursor = checkLineForSpecialChars(lineText, textAfterCursor, indentLevel);
 		insertOnNewLine(textAfterCursor, false);
@@ -146,12 +142,9 @@ export const tabPressed = () => {
 	const parentNode = getParentNodeOfLine();
 	if (checkIfEditable(parentNode)) return;
 
-	console.log(parentNode);
-
 	// const currentLine = getCurrentLine();
 
 	const sel = window.getSelection();
-	console.log(sel);
 	if (!sel) return;
 	const lineText = sel.focusNode?.textContent;
 
@@ -159,7 +152,6 @@ export const tabPressed = () => {
 		for (const block of tabSpecialRules) {
 			if (lineText.match(block[0])) {
 				if (parentNode) {
-					console.log(parentNode);
 					parentNode.textContent = '\t' + parentNode.textContent;
 					gotoEndOfNode(sel, parentNode);
 				}
@@ -178,7 +170,6 @@ export const tabPressed = () => {
 
 const checkLineForSpecialChars = (lineText: string, textToAdd: string, indentLevel: number) => {
 	let text = textToAdd;
-	console.log(lineText);
 	for (const block of enterSpecialRules) {
 		if (lineText.match(block[0])) {
 			switch (block[1]) {
@@ -189,9 +180,9 @@ const checkLineForSpecialChars = (lineText: string, textToAdd: string, indentLev
 					break;
 				}
 				case 'UNORDERED_LIST': {
-					console.log('ul fdsjfkds');
+					const token = lineText.trimStart()[0];
 					const padding = '\t'.repeat(indentLevel);
-					text = padding + '* ' + textToAdd;
+					text = padding + token + ' ' + textToAdd;
 					break;
 				}
 				case 'ORDERED_LIST': {

@@ -1,101 +1,67 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import type { IBlog } from '$lib/types';
-	import { surroundSelectedText, toNewLine } from '.';
-	import { insertOnNewLine } from '../helper';
-	import ImageMenu from './ImageMenu.svelte';
 	import ShareBlogMenu from './ShareBlogMenu.svelte';
 
 	export let newTitle: string | null = 'Default';
 	export let blog: IBlog | null;
+	export let editorOpen: boolean;
+	export let outputOpen: boolean;
+	export let resizeClosed: 'editor' | 'output' | null;
 
-	let imageMenuOpen = false;
 	let shareMenuOpen = false;
 
-	const addCodeBlock = () => {
-		let sel = window.getSelection();
-		if (!sel?.rangeCount) return;
-		let range = sel?.getRangeAt(0);
-		let content = range?.toString();
-		if (content) {
-			surroundSelectedText('`');
+	const toggleEditor = () => {
+		if (outputOpen) {
+			editorOpen = !editorOpen;
+			resizeClosed = 'editor';
 		} else {
-			insertOnNewLine('```', true);
-			insertOnNewLine('', true);
-			insertOnNewLine('```', true);
+			outputOpen = true;
+			editorOpen = false;
+			resizeClosed = 'editor';
 		}
 	};
 
-	const addImageBlock = () => {
-		toNewLine('![Description](URL)');
+	const toggleOutput = () => {
+		if (editorOpen) {
+			outputOpen = !outputOpen;
+			resizeClosed = 'output';
+		} else {
+			editorOpen = true;
+			outputOpen = false;
+			resizeClosed = 'output';
+		}
+	};
+
+	const goBack = () => {
+		history.go(-1);
 	};
 </script>
 
 <div class="toolBar">
-	<a href={browser ? window.location.origin + '/folder/' + blog?.parentId : ''}>
-		<span class="material-icons-outlined"> keyboard_backspace </span>
-	</a>
-	<div class="buttons">
-		<button on:click={() => surroundSelectedText('**')}>
-			<span class="material-icons-outlined"> format_bold </span>
-			<p>Bold</p></button
-		>
-		<button on:click={() => surroundSelectedText('*')}>
-			<span class="material-icons-outlined"> format_italic </span>
-			<p>Italics</p></button
-		>
-		<button on:click={() => surroundSelectedText('~~')}>
-			<span class="material-icons-outlined"> format_strikethrough </span>
-			<p>Strikethrough</p></button
-		>
-		<button on:click={() => toNewLine('#')}>
-			<span class="span-text">h1</span>
-			<p>Heading 1</p>
+	<div class="left">
+		<button on:click={goBack} class="backBtn">
+			<span class="material-icons-outlined"> keyboard_backspace </span>
 		</button>
-		<button on:click={() => toNewLine('##')}>
-			<span class="span-text">h2</span>
-			<p>Heading 2</p>
-		</button>
-
-		<button on:click={() => toNewLine('*')}>
-			<span class="material-icons-outlined"> format_list_bulleted </span>
-			<p>Unordered List</p>
-		</button>
-
-		<button on:click={() => toNewLine('1.')}>
-			<span class="material-icons-outlined">format_list_numbered</span>
-			<p>Ordered List</p>
-		</button>
-
-		<button on:click={addCodeBlock}>
-			<span class="material-icons-outlined"> code </span>
-			<p>Code</p>
-		</button>
-
-		<button on:click={addImageBlock}>
-			<span class="material-icons-outlined"> image </span>
-			<p>Images</p>
-		</button>
-
-		<button on:click={() => (imageMenuOpen = true)}>
-			<span class="material-icons-outlined"> upload_file </span>
-			<p>Upload</p>
-		</button>
-	</div>
-	<div class="right">
 		<input type="text" class="newTitleInput" bind:value={newTitle} />
-		<button class="shareBtn" on:click={() => (shareMenuOpen = true)}>
-			<span class="material-icons-outlined"> share </span>
-			Share</button
-		>
+		<div class="btnContainer">
+			<button on:click={toggleEditor} title="Bold" class:selected={editorOpen}>
+				<span class="material-icons-outlined"> edit </span>
+			</button>
+			<button on:click={toggleOutput} title="Bold" class:selected={outputOpen}>
+				<span class="material-icons-outlined"> article </span>
+			</button>
+		</div>
 	</div>
-	<ImageMenu bind:imageMenuOpen blogId={blog && blog.id ? blog.id : ''} />
+	<button class="shareBtn" on:click={() => (shareMenuOpen = true)}>
+		<span class="material-icons-outlined"> share </span>
+		<p>Share</p></button
+	>
 	<ShareBlogMenu {blog} bind:shareMenuOpen />
 </div>
 
 <style>
 	.toolBar {
-		top: 0rem;
+		top: 0;
 		position: sticky;
 		background: #aaa;
 
@@ -105,32 +71,65 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		gap: 1rem;
 
-		z-index: 100;
+		height: 3rem;
+
+		z-index: 80;
 	}
 
-	.toolBar .buttons {
+	.toolBar .left {
 		flex: 1 1 auto;
-		display: grid;
-		grid-auto-flow: columns;
-		grid-template-columns: repeat(auto-fit, 32px);
-		gap: 0.5rem;
+		display: flex;
+		gap: 1rem;
 	}
 
-	a {
-		color: initial;
-		text-decoration: none;
+	.toolBar .backBtn {
 		display: flex;
-		padding-right: 0.5rem;
+		background: lightgrey;
+		border-radius: 100%;
+		padding: 3px;
+
+		width: 32px;
+		height: 32px;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		border: none;
+		outline: none;
+
+		cursor: pointer;
 	}
 
-	a span {
+	.backBtn span {
 		display: flex;
-		font-size: 2rem;
+		font-size: 1.5rem;
+		color: white;
+	}
+
+	.newTitleInput {
+		flex: 1 1 auto;
+		width: 0;
+		max-width: 300px;
+		background: none;
+		outline: none;
+		border: 1px solid #777;
+		border-radius: 0.25rem;
+		font-size: 1.2rem;
+		font-weight: bold;
+		text-align: center;
+
 		color: #333;
 	}
 
-	button {
+	.newTitleInput:hover,
+	.newTitleInput:focus {
+		background: #ffffff20;
+		border-color: black;
+	}
+	.btnContainer button {
 		position: relative;
 		background: none;
 		outline: none;
@@ -143,48 +142,26 @@
 		color: white;
 	}
 
-	button span {
+	.btnContainer button.selected {
+		background: #00000030;
+	}
+
+	.btnContainer button span {
 		display: flex;
 	}
 
-	button .span-text {
-		font-size: 1rem;
-		font-weight: bold;
-	}
-
-	button:hover {
+	.btnContainer button:hover {
 		background: #ffffff40;
 	}
 
-	button:active {
+	.btnContainer button:active {
 		background: #ffffff60;
 	}
 
-	button:hover p {
-		display: block;
-	}
-
-	button p {
-		display: none;
-		padding: 5px;
-		background: grey;
-		border-radius: 5px;
-		color: white;
-
-		width: auto;
-
-		position: absolute;
-	}
-
-	.right {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.right .shareBtn {
+	.shareBtn {
 		background: blue;
+		outline: none;
+		border: none;
 		color: white;
 
 		width: initial;
@@ -206,21 +183,21 @@
 		font-size: 1rem;
 	}
 
-	.newTitleInput {
-		background: none;
-		outline: none;
-		border: 1px solid #777;
-		border-radius: 0.25rem;
-		font-size: 1.2rem;
-		font-weight: bold;
-		text-align: center;
+	@media (max-width: 650px) {
+		.toolBar {
+			padding-inline: 0.5rem;
+		}
 
-		color: #333;
-	}
+		.toolBar .left {
+			gap: 0.5rem;
+		}
 
-	.newTitleInput:hover,
-	.newTitleInput:focus {
-		background: #ffffff20;
-		border-color: black;
+		.shareBtn {
+			padding: 0.5rem;
+		}
+
+		.shareBtn p {
+			display: none;
+		}
 	}
 </style>

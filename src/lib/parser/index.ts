@@ -4,7 +4,9 @@ import {
 	unorderedListRules,
 	orderedListRules,
 	preOpeningRules,
-	tableRowRules
+	tableRowRules,
+	uncheckedListRules,
+	checkedListRules
 } from '$lib/parser/rules';
 
 interface Token {
@@ -52,11 +54,11 @@ export const tokenise = (doc: string) => {
 	}
 
 	const cleanedTokens = [...tokens];
-	for (let i = 0; i < tokens.length; i++) {
-		const hasContent = tokens[tokens.length - i - 1].content.length > 0;
-		if (hasContent) break;
-		cleanedTokens.pop();
-	}
+	// for (let i = 0; i < tokens.length; i++) {
+	// 	const hasContent = tokens[tokens.length - i - 1].content.length > 0;
+	// 	if (hasContent) break;
+	// 	cleanedTokens.pop();
+	// }
 
 	return cleanedTokens;
 };
@@ -155,6 +157,7 @@ export const handleLists = (listBlock: Block) => {
 
 	for (let i = 0; i < listBlock.children.length; i++) {
 		let child = listBlock.children[i];
+		let checkBox = '';
 		const nextChild = i + 1 < listBlock.children.length ? listBlock.children[i + 1] : null;
 
 		const currentMatchIndent = (child.match(/^(\t*)/gm) as string[]) || [''];
@@ -165,16 +168,25 @@ export const handleLists = (listBlock: Block) => {
 		const nextIndent = nextMatchIndent ? nextMatchIndent[0].length : -1;
 
 		if (child.match(unorderedListRules[0])) {
-			child = child.replace(/^\t*\*(.+)/gm, '$1');
+			child = child.replace(/^\t*[*-][^\S\t\n\r](.+)/gm, '$1');
 			currentListType = 'UNORDERED_LIST';
 		} else if (child.match(orderedListRules[0])) {
-			child = child.replace(/^\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.(.+)/gm, '$1');
+			child = child.replace(/^\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.[^\S\t\n\r](.*)/gm, '$1');
 			currentListType = 'ORDERED_LIST';
 		}
 
-		child = convertInlineToHtml(child);
-
 		const currentTag = currentListType === 'UNORDERED_LIST' ? ['<ul>', '</ul>'] : ['<ol>', '</ol>'];
+
+		if (child.match(uncheckedListRules[0] as string)) {
+			child = child.replace(uncheckedListRules[0] as string, '$1');
+			checkBox = '<input type="checkBox" />';
+		} else if (child.match(checkedListRules[0] as string)) {
+			child = child.replace(checkedListRules[0] as string, '$1');
+			checkBox = '<input type="checkBox" checked="true" />';
+		}
+
+		child = convertInlineToHtml(child);
+		if (checkBox) child = checkBox += child;
 
 		// If start of list or nothing before list
 		if (html.length === 0) {
@@ -264,7 +276,7 @@ export const handleTables = (listBlock: Block) => {
 		html += '<tr>';
 		const dataValues = listBlock.children[i].slice(1, headerData.length - 1).split('|');
 		for (const data of dataValues) {
-			html += '<td>' + data + '</td>';
+			if (data.length > 0) html += '<td>' + data + '</td>';
 		}
 		html += '</tr>';
 	}

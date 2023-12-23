@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import { userStore } from '$lib/stores';
 	import MarkdownOutput from '$lib/components/MarkdownOutput.svelte';
+	import { fly } from 'svelte/transition';
 
 	const user = userStore(auth);
 	const docRef = doc(db, 'blogs', $page.params.id);
@@ -19,6 +20,11 @@
 	let markdownContent: string | null = null;
 
 	let newTitle: string | null = null;
+
+	let editorOpen = true;
+	let outputOpen = true;
+
+	let resizeClosed: 'editor' | 'output' | null = null;
 
 	const getBlog = async () => {
 		console.log('id: ', $page.params.id);
@@ -51,21 +57,39 @@
 		markdownContent = content;
 	};
 
+	const resizeThreshold = 650;
+	const onResize = () => {
+		if (window.innerWidth <= resizeThreshold && editorOpen === outputOpen && editorOpen === true) {
+			outputOpen = false;
+			resizeClosed = null;
+		} else if (window.innerWidth > resizeThreshold) {
+			if (resizeClosed === null) {
+				outputOpen = true;
+				editorOpen = true;
+			}
+		}
+	};
+
 	onMount(() => {
 		getBlog();
 	});
 </script>
 
+<svelte:window on:resize={onResize} />
 {#if isAllowed}
 	<div class="container">
-		<ToolBar bind:newTitle {blog} />
+		<ToolBar bind:newTitle {blog} bind:editorOpen bind:outputOpen bind:resizeClosed />
 		<main>
-			<section class="left">
-				<TextEditor {updateOutput} {updateDb} {blog} />
-			</section>
-			<section class="right">
-				<MarkdownOutput {markdownContent} />
-			</section>
+			{#if editorOpen}
+				<section class="left" transition:fly={{ x: '-50vw' }}>
+					<TextEditor {updateOutput} {updateDb} {blog} />
+				</section>
+			{/if}
+			{#if outputOpen}
+				<section class="right" transition:fly={{ x: '50vw' }}>
+					<MarkdownOutput {markdownContent} />
+				</section>
+			{/if}
 		</main>
 	</div>
 {:else}
@@ -81,24 +105,26 @@
 		display: flex;
 		flex-direction: column;
 		font-family: 'Roboto Condensed', sans-serif;
-		font-size: 18px;
+		font-size: 16px;
 	}
 
 	main {
-		flex: 1;
-		display: flex;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
+		height: calc(100svh - 3rem);
 	}
 
 	.left {
-		width: 50%;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		position: relative;
+
+		overflow-y: auto;
 	}
 
 	.right {
-		width: 50%;
-		padding: 0.5rem;
+		overflow-y: auto;
 	}
 </style>

@@ -33,5 +33,9 @@
 		border-radius: 0.5rem;
 
 		user-select: text;
+
+		max-height: 80svh;
+		max-width: 800px;
+		overflow-y: auto;
 	}
 </style>

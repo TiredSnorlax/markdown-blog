@@ -6,7 +6,6 @@
 	let markdownOutput: HTMLDivElement;
 
 	const render = (content: string | null, _div: HTMLDivElement) => {
-		console.log('render');
 		if (!content || !markdownOutput) return;
 
 		let tokens = tokenise(content);
@@ -24,12 +23,12 @@
 
 <style>
 	* {
-		font-size: 18px;
 		font-family: 'Roboto Condensed', sans-serif;
 	}
 
 	.output {
 		width: 100%;
+		padding: 1rem;
 	}
 
 	:global(p) {
@@ -43,7 +42,10 @@
 	}
 
 	:global(img) {
+		display: block;
 		width: 100%;
+		max-width: 800px;
+		margin-inline: auto;
 	}
 
 	:global(blockquote) {
@@ -65,5 +67,10 @@
 		text-align: start;
 		border: 1px solid lightgrey;
 		padding: 1rem;
+	}
+
+	:global(li > input) {
+		margin-bottom: 0;
+		margin-right: 0.5rem;
 	}
 </style>

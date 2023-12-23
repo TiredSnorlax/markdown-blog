@@ -22,26 +22,32 @@ export const rules = [
 	[
 		/\[([^\]]+)\]\((\S+)\s(.+)\)/g,
 		'<a href="$2" title="$3" target="_blank" style="color:#2A5DB0">$1</a>'
-	]
+	],
+
+	[/^[-*]{3}\s*$/gm, '<hr />'],
+	[/^_{3,}\s*$/gm, '<hr />']
 ];
 
-export const unorderedListRules = [/^(\t*\*[^\S\t\n\r].+)/gm, 'LIST'];
+// TODO : change this to an object
+export const unorderedListRules = [/^(\t*[*-][^\S\t\n\r].+)/gm, 'LIST'];
 export const orderedListRules = [
 	/^(\t*(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.[^\S\t\n\r].*)/gm,
 	'LIST'
 ];
+export const uncheckedListRules = [/^\[\s\]\s(.+)/gm, 'UNCHECKED'];
+export const checkedListRules = [/^\[x\]\s(.+)/gm, 'CHECKED'];
 export const preOpeningRules = [/^`{3}(.+)?/gm, 'PRE'];
 export const blockQuoteRules = [/^>+(.*)/gm, 'BLOCKQUOTE'];
-export const tableRowRules = [/^\|(.+)\|(.+)\|/gm, 'TABLE'];
-export const tableAlignmentRules = [/^\|(\s*[-:]+\s*)\|(\s*[-:]+\s*)\|/gm, 'TABLE_FORMAT'];
+export const tableRowRules = [/^\|(.+)\|$/gm, 'TABLE'];
+export const tableAlignmentRules = [/^(\|(?:\s*[-:]+\s*\|)+)/gm, 'TABLE_FORMAT'];
 
 export const enterSpecialRules = [
-	[/^(\t*\*[^\S\t\n\r].+)/gm, 'UNORDERED_LIST'],
-	[/^\t*((?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9]))\.[^\S\t\n\r].*/gm, 'ORDERED_LIST'],
+	[/^(\t*[*-][^\S\t\n\r].+)/gm, 'UNORDERED_LIST'],
+	[/^\t*((?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9]))\.[^\S\t\n\r].+/gm, 'ORDERED_LIST'],
 	[/^>+(.*)/gm, 'BLOCKQUOTE']
 ];
 
 export const tabSpecialRules = [
-	[/^(\t*)\*\s$/gm, 'UNORDERED_LIST'],
+	[/^(\t*)[*-]\s$/gm, 'UNORDERED_LIST'],
 	[/^(\t*)(?:[0-9]|[1-9][0-9]|[1-9][0-9][0-9])\.\s$/gm, 'ORDERED_LIST']
 ];

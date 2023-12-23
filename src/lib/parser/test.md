@@ -14,7 +14,7 @@ Italicized text is the _cat's meow_.
 
 This text is **_really important_**.
 
-- First item
+- [x] First item
 - Second item
 - Third item
   - Indented item
