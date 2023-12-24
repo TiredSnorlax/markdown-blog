@@ -182,7 +182,7 @@
 
 <button on:click={updateFunction}>Save</button>
 <div class="container">
-	<EditorButtons {blog} />
+	<EditorButtons {blog} {updateFunction} />
 	<div
 		class="editor"
 		id="editor"

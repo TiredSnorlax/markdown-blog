@@ -4,8 +4,18 @@
 	import type { IBlog } from '$lib/types';
 	import ImageMenu from './toolbar/ImageMenu.svelte';
 	import MarkdownHelpMenu from '$lib/editor/toolbar/MarkdownHelpMenu.svelte';
+	import { onMount } from 'svelte';
 
 	export let blog: IBlog | null;
+	export let updateFunction: () => void;
+
+	interface ICtrlFunction {
+		key: string;
+		keyFunction: () => void;
+		shift: boolean;
+	}
+
+	let ctrlKeyFunctions: ICtrlFunction[] = [];
 
 	let helpMenuOpen = false;
 	let imageMenuOpen = false;
@@ -28,19 +38,41 @@
 		toNewLine('![Description](URL)');
 	};
 
-	// onMount(() => {
-	// 	ctrlKeyFunctions = [
-	// 		{ key: 'S', keyFunction: updateFunction, shift: false },
-	// 		{ key: 'B', keyFunction: () => surroundSelectedText('**'), shift: false },
-	// 		{ key: 'I', keyFunction: () => surroundSelectedText('*'), shift: false },
-	// 		{ key: 'S', keyFunction: () => surroundSelectedText('~~'), shift: true },
-	// 		{ key: '1', keyFunction: () => toNewLine('#'), shift: true },
-	// 		{ key: '2', keyFunction: () => toNewLine('##'), shift: true },
-	// 		{ key: 'U', keyFunction: () => toNewLine('-'), shift: true },
-	// 		{ key: 'O', keyFunction: () => toNewLine('1.'), shift: true },
-	// 		{ key: 'C', keyFunction: addCodeBlock, shift: true }
-	// 	];
-	// });
+	onMount(() => {
+		ctrlKeyFunctions = [
+			{ key: 's', keyFunction: updateFunction, shift: false },
+			{ key: 'b', keyFunction: () => surroundSelectedText('**'), shift: false },
+			{ key: 'i', keyFunction: () => surroundSelectedText('*'), shift: false },
+			{ key: 's', keyFunction: () => surroundSelectedText('~~'), shift: true },
+			{ key: '1', keyFunction: () => toNewLine('#'), shift: true },
+			{ key: '2', keyFunction: () => toNewLine('##'), shift: true },
+			{ key: 'U', keyFunction: () => toNewLine('-'), shift: true },
+			{ key: 'O', keyFunction: () => toNewLine('1.'), shift: true },
+			{ key: 'C', keyFunction: addCodeBlock, shift: true }
+		];
+
+		const ctrlKeyPressHandler = (e: KeyboardEvent) => {
+			console.log(e.key, e.ctrlKey);
+			if (e.ctrlKey) {
+				console.log('ctrl');
+				for (const { key, keyFunction, shift } of ctrlKeyFunctions) {
+					if (e.key === key && e.shiftKey === shift) {
+						e.preventDefault();
+						console.log('running');
+						keyFunction();
+					}
+				}
+			}
+		};
+
+		window.addEventListener('keydown', ctrlKeyPressHandler);
+
+		return () => {
+			ctrlKeyFunctions = [];
+			console.log('ctrl keypress removed');
+			window.removeEventListener('keydown', ctrlKeyPressHandler);
+		};
+	});
 </script>
 
 <div class="buttons">

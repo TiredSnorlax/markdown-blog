@@ -10,13 +10,14 @@ import { getStorage } from 'firebase/storage';
 // Your web app's Firebase configuration
 //
 
+console.log(import.meta.env.FIREBASE_AUTHDOMAIN);
 const firebaseConfig = {
 	apiKey: import.meta.env.VITE_API_KEY,
-	authDomain: 'markdown-blog-1116c.firebaseapp.com',
-	projectId: 'markdown-blog-1116c',
-	storageBucket: 'markdown-blog-1116c.appspot.com',
-	messagingSenderId: '1021866219410',
-	appId: '1:1021866219410:web:1ca507cd1f486c2341134b'
+	authDomain: import.meta.env.VITE_FIREBASE_AUTHDOMAIN,
+	projectId: import.meta.env.VITE_PROJECT_ID,
+	storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+	messagingSenderId: import.meta.env.VITE_MESSAGING_ID,
+	appId: import.meta.env.VITE_APP_ID
 };
 
 // Initialize Firebase

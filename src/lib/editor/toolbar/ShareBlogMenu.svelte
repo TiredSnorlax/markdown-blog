@@ -62,9 +62,11 @@
 	}
 
 	.accessOptions {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
 		gap: 1rem;
+
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
 
 		margin-bottom: 1rem;
 	}
