@@ -388,4 +388,14 @@
 	.popup > button:hover {
 		background: rgba(0, 0, 0, 0.3);
 	}
+
+	@media (max-width: 650px) {
+		.path {
+			margin-inline: 1rem;
+		}
+
+		.content {
+			padding-inline: 1rem;
+		}
+	}
 </style>

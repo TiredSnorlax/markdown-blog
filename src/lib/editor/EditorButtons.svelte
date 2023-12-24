@@ -127,9 +127,15 @@
 
 <style>
 	.buttons {
+		position: sticky;
+		top: 0rem;
 		height: 32px;
 		display: flex;
 		align-items: center;
+
+		z-index: 50;
+
+		background: #eee;
 
 		overflow-x: auto;
 	}

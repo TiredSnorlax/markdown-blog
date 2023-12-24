@@ -225,6 +225,8 @@
 	}
 
 	:global(.editor > div) {
+		line-height: 20px;
+		min-height: 20px;
 		padding-left: 3rem;
 		white-space: pre-wrap;
 		position: relative;
