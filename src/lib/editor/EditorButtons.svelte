@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { surroundSelectedText, toNewLine } from './toolbar';
-	import { insertOnNewLine } from './helper';
+	import { insertOnNewLine, surroundStringMultiLine } from './helper';
 	import type { IBlog } from '$lib/types';
 	import ImageMenu from './toolbar/ImageMenu.svelte';
 	import MarkdownHelpMenu from '$lib/editor/toolbar/MarkdownHelpMenu.svelte';
@@ -25,8 +25,12 @@
 		if (!sel?.rangeCount) return;
 		let range = sel?.getRangeAt(0);
 		let content = range?.toString();
-		if (content) {
+		// TODO: add multiline
+
+		if (content && sel.anchorNode === sel.focusNode) {
 			surroundSelectedText('`');
+		} else if (sel.anchorNode !== sel.focusNode) {
+			surroundStringMultiLine('```', sel.anchorNode, sel.focusNode, sel);
 		} else {
 			insertOnNewLine('```', true);
 			insertOnNewLine('', true);
@@ -52,7 +56,6 @@
 		];
 
 		const ctrlKeyPressHandler = (e: KeyboardEvent) => {
-			console.log(e.key, e.ctrlKey);
 			if (e.ctrlKey) {
 				console.log('ctrl');
 				for (const { key, keyFunction, shift } of ctrlKeyFunctions) {

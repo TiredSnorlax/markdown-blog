@@ -73,4 +73,11 @@
 		margin-bottom: 0;
 		margin-right: 0.5rem;
 	}
+
+	:global(code) {
+		background: lightgrey;
+		border-radius: 3px;
+		padding: 3px;
+		font-family: 'Courier New', Courier, monospace;
+	}
 </style>

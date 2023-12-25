@@ -1,4 +1,10 @@
-import { insertOnNewLine, insertString, getParentNodeOfLine, checkIfEditable } from '../helper';
+import {
+	insertOnNewLine,
+	insertString,
+	getParentNodeOfLine,
+	checkIfEditable,
+	surroundStringMultiLine
+} from '../helper';
 
 export const surroundSelectedText = (token: string) => {
 	const parentNode = getParentNodeOfLine() as HTMLDivElement;
@@ -11,6 +17,8 @@ export const surroundSelectedText = (token: string) => {
 		if (sel && sel.rangeCount) {
 			range = sel.getRangeAt(0);
 			const rangeOffset = range.startOffset;
+			console.log(range);
+			console.log(sel);
 			// No highlighted
 			if (range.startOffset === range.endOffset && range.startContainer === range.endContainer) {
 				insertString(token);
@@ -32,39 +40,41 @@ export const surroundSelectedText = (token: string) => {
 			} else {
 				const inside = selectedValue || '';
 
-				range.deleteContents();
+				// TODO: check if its already surrounded by token
 
-				// I have no idea why the following code works
-				insertString(token);
-				insertString(inside);
-				insertString(token);
+				// const newSelectedValue = sel.toString();
+				// console.log(newSelectedValue);
+				// if (newSelectedValue.split(inside).join('') === token + token) {
+				// 	range.deleteContents();
+				//
+				// 	insertString(inside);
+				//
+				// 	for (let i = 0; i < inside.length; i++) {
+				// 		sel.modify('extend', 'left', 'character');
+				// 	}
+				//
+				// 	return;
+				// }
 
-				const newRange = document.createRange();
+				// range.collapse(true);
 
-				if (!sel.anchorNode) return;
-				newRange.setStart(sel.anchorNode, 0);
-				newRange.setEnd(sel.anchorNode, 0);
+				if (sel.anchorNode !== sel.focusNode) {
+					surroundStringMultiLine(token, sel.anchorNode, sel.focusNode, sel);
+				} else {
+					range.deleteContents();
 
-				sel.removeAllRanges();
+					insertString(token + inside + token);
 
-				sel.addRange(newRange);
+					for (let i = 0; i < token.length; i++) {
+						sel.modify('move', 'left', 'character');
+					}
 
-				for (let i = 0; i < rangeOffset + token.length + inside.length; i++) {
-					sel.modify('move', 'right', 'character');
+					for (let i = 0; i < inside.length; i++) {
+						sel.modify('extend', 'left', 'character');
+					}
 				}
-				// range.insertNode(document.createTextNode(token));
-				// range.insertNode(nodeToSurround);
-				// range.insertNode(document.createTextNode(token));
-				// sel.setPosition(range.startContainer, range.startOffset);
-				//
-				// sel.removeAllRanges();
-				//
-				//
-				// const newRange = document.createRange();
-				// newRange.setStart(nodeToSurround, 0);
-				// newRange.setEnd(nodeToSurround, selectedValue ? selectedValue.length : 0);
-				//
-				// sel.addRange(newRange);
+
+				return;
 			}
 		}
 	} else {
@@ -73,9 +83,6 @@ export const surroundSelectedText = (token: string) => {
 };
 
 export const toNewLine = (str: string) => {
-	const parentNode = getParentNodeOfLine() as HTMLDivElement;
-	if (checkIfEditable(parentNode)) return;
-
 	const sel = window.getSelection();
 	if (!sel?.rangeCount) return;
 	const range = sel?.getRangeAt(0);
@@ -87,7 +94,7 @@ export const toNewLine = (str: string) => {
 	} else {
 		console.log('Selected: ', range.toString());
 		const existingContent = range.toString();
-		range.deleteContents();
 		insertOnNewLine(str + ' ' + existingContent, false);
+		range.deleteContents();
 	}
 };

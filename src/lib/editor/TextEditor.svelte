@@ -24,10 +24,10 @@
 		if (!blog || !inputTextArea) return;
 		let blogContent = blog?.content;
 		if (!blogContent || blogContent.trim().length === 0) {
-			const div = document.createElement('div');
+			const pre = document.createElement('pre');
 			const inner = document.createTextNode('');
-			div.appendChild(inner);
-			inputTextArea.appendChild(div);
+			pre.appendChild(inner);
+			inputTextArea.appendChild(pre);
 		}
 
 		let content = blogContent.split('\n');
@@ -43,10 +43,10 @@
 		content = [...tempContent];
 
 		for (const line of content) {
-			const div = document.createElement('div');
+			const pre = document.createElement('pre');
 			const inner = document.createTextNode(line);
-			div.appendChild(inner);
-			inputTextArea.appendChild(div);
+			pre.appendChild(inner);
+			inputTextArea.appendChild(pre);
 		}
 
 		pressRender();
@@ -91,36 +91,36 @@
 		} else if (e.key === 'Shift') {
 			console.log(getParentNodeOfLine());
 		} else if (e.key === 'Backspace' && e.ctrlKey) {
-			console.log('special backspace');
-			e.preventDefault();
-			if (!windowSelection) return;
-			windowSelection.modify('extend', 'backward', 'word');
-			const range = windowSelection?.getRangeAt(0);
-			// checks is selection extends to prev line
-			if (windowSelection.focusNode !== windowSelection?.anchorNode) {
-				const prev = windowSelection.focusNode?.parentNode;
-				if (!prev) return;
-				range?.deleteContents();
-				gotoEndOfNode(windowSelection, prev);
-			} else {
-				range?.deleteContents();
-			}
+			// e.preventDefault();
+			return;
+			// if (!windowSelection) return;
+			// // windowSelection.modify('extend', 'backward', 'word');
+			// const range = windowSelection?.getRangeAt(0);
+			// // checks is selection extends to prev line
+			// if (windowSelection.focusNode !== windowSelection?.anchorNode) {
+			// 	const prev = windowSelection.focusNode?.parentNode;
+			// 	if (!prev) return;
+			// 	range?.deleteContents();
+			// 	gotoEndOfNode(windowSelection, prev);
+			// } else {
+			// 	range?.deleteContents();
+			// }
 		}
 	};
 
 	const onKeyUp = (e: KeyboardEvent) => {
 		if (e.key === 'Delete' || e.key === 'Backspace') {
-			addDivToInput();
+			addPreToInput();
 			changeFocus(e);
 		}
 	};
 
-	const addDivToInput = () => {
+	const addPreToInput = () => {
 		if (inputTextArea.children[0].matches('br')) {
-			const newDiv = document.createElement('div');
-			inputTextArea.prepend(newDiv);
+			const newPre = document.createElement('pre');
+			inputTextArea.prepend(newPre);
 			let sel = window.getSelection();
-			sel?.collapse(newDiv);
+			sel?.collapse(newPre);
 		}
 	};
 
@@ -160,9 +160,11 @@
 		windowSelection = window.getSelection();
 		const onSelectionChange = () => {
 			if (windowSelection) {
-				const newSelectedLine = windowSelection.focusNode?.parentElement;
+				let newSelectedLine = windowSelection.focusNode?.parentElement;
+				if (newSelectedLine === inputTextArea)
+					newSelectedLine = windowSelection.focusNode as HTMLElement;
 				if (prevSelectedLine !== newSelectedLine && newSelectedLine !== inputTextArea) {
-					if (newSelectedLine) {
+					if (newSelectedLine && newSelectedLine.matches('pre')) {
 						newSelectedLine.classList.add('selected');
 						if (prevSelectedLine) {
 							prevSelectedLine.classList.remove('selected');
@@ -209,6 +211,7 @@
 	.editor {
 		flex-grow: 1;
 		display: inline-block;
+		user-select: text;
 
 		border: none;
 		outline: none;
@@ -224,16 +227,24 @@
 		display: none;
 	}
 
-	:global(.editor > div) {
+	:global(.editor > pre) {
+		border-radius: 0;
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		max-width: 100%;
 		line-height: 20px;
 		min-height: 20px;
 		padding-left: 3rem;
+
+		overflow-wrap: break-word;
 		white-space: pre-wrap;
+
 		position: relative;
 		counter-increment: line-number;
 	}
 
-	:global(.editor > div::before) {
+	:global(.editor > pre::before) {
 		content: counter(line-number);
 		position: absolute;
 		top: 0;
@@ -241,15 +252,15 @@
 		color: grey;
 	}
 
-	:global(.editor > div.selected::before) {
+	:global(.editor > pre.selected::before) {
 		color: black;
 	}
 
-	:global(.editor > div.selected) {
+	:global(.editor > pre.selected) {
 		background: #d0d0d0;
 	}
 
-	:global(.editor > div:focus-within) {
+	:global(.editor > pre:focus-within) {
 		background: grey;
 	}
 
