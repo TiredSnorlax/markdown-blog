@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { IFolder } from '$lib/types';
-	import { slide } from 'svelte/transition';
 	import RenameFolderMenu from './RenameFolderMenu.svelte';
 	import { userStore } from '$lib/stores';
 	import { auth, db } from '$lib/db/setup';
 	import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 	import DeleteItemMenu from './DeleteItemMenu.svelte';
 	import DetailsMenu from './DetailsMenu.svelte';
+	import ItemOptionsList from './ItemOptionsList.svelte';
 
 	export let parentPath: string;
 	export let folder: IFolder;
@@ -61,30 +61,13 @@
 	<button on:click={toggleOptions} class="optionsBtn"
 		><span bind:this={moreBtnEle} class="material-icons-outlined"> more_vert </span></button
 	>
-	{#if optionsOpen}
-		<div class="options" transition:slide>
-			{#if isOwner}
-				<button
-					on:click={() => {
-						renameMenuOpen = true;
-						optionsOpen = false;
-					}}>Rename</button
-				>
-				<button
-					on:click={() => {
-						deleteMenuOpen = true;
-						optionsOpen = false;
-					}}>Delete</button
-				>
-			{/if}
-			<button
-				on:click={() => {
-					detailsMenuOpen = true;
-					optionsOpen = false;
-				}}>Details</button
-			>
-		</div>
-	{/if}
+	<ItemOptionsList
+		{isOwner}
+		bind:detailsMenuOpen
+		bind:deleteMenuOpen
+		bind:renameMenuOpen
+		bind:optionsOpen
+	/>
 	<RenameFolderMenu
 		fileType={'Folder'}
 		bind:renameMenuOpen
@@ -153,30 +136,5 @@
 		display: flex;
 		border-radius: 100%;
 		padding: 2px;
-	}
-
-	.options {
-		padding-block: 1rem;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: center;
-		position: absolute;
-		left: 100%;
-		top: 1rem;
-
-		background: white;
-		border-radius: 0.5rem;
-
-		box-shadow: 0 1px 2px 0 grey;
-
-		z-index: 50;
-	}
-
-	.options button {
-		border-radius: 0;
-		padding: 0.5rem;
-		width: 100%;
-		font-size: 1rem;
 	}
 </style>
