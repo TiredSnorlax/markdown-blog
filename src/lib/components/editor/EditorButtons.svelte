@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { surroundSelectedText, toNewLine } from './toolbar';
-	import { insertOnNewLine, surroundStringMultiLine } from './helper';
 	import type { IBlog } from '$lib/types';
 	import ImageMenu from './toolbar/ImageMenu.svelte';
 	import MarkdownHelpMenu from '$lib/editor/toolbar/MarkdownHelpMenu.svelte';
 	import { onMount } from 'svelte';
+	import type Editor from '$lib/editor';
 
 	export let blog: IBlog | null;
 	export let updateFunction: () => void;
+	export let editor: Editor;
 
 	interface ICtrlFunction {
 		key: string;
@@ -21,37 +21,36 @@
 	let imageMenuOpen = false;
 
 	const addCodeBlock = () => {
-		let sel = window.getSelection();
+		let sel = editor.selection;
 		if (!sel?.rangeCount) return;
 		let range = sel?.getRangeAt(0);
 		let content = range?.toString();
-		// TODO: add multiline
 
 		if (content && sel.anchorNode === sel.focusNode) {
-			surroundSelectedText('`');
+			editor.surroundSelectedText('`');
 		} else if (sel.anchorNode !== sel.focusNode) {
-			surroundStringMultiLine('```', sel.anchorNode, sel.focusNode, sel);
+			editor.surroundStringMultiLine('```');
 		} else {
-			insertOnNewLine('```', true);
-			insertOnNewLine('', true);
-			insertOnNewLine('```', true);
+			editor.insertOnNewLine('```', true);
+			editor.insertOnNewLine('', true);
+			editor.insertOnNewLine('```', true);
 		}
 	};
 
 	const addImageBlock = () => {
-		toNewLine('![Description](URL)');
+		editor.toNewLine('![Description](URL)');
 	};
 
 	onMount(() => {
 		ctrlKeyFunctions = [
 			{ key: 's', keyFunction: updateFunction, shift: false },
-			{ key: 'b', keyFunction: () => surroundSelectedText('**'), shift: false },
-			{ key: 'i', keyFunction: () => surroundSelectedText('*'), shift: false },
-			{ key: 's', keyFunction: () => surroundSelectedText('~~'), shift: true },
-			{ key: '1', keyFunction: () => toNewLine('#'), shift: true },
-			{ key: '2', keyFunction: () => toNewLine('##'), shift: true },
-			{ key: 'U', keyFunction: () => toNewLine('-'), shift: true },
-			{ key: 'O', keyFunction: () => toNewLine('1.'), shift: true },
+			{ key: 'b', keyFunction: () => editor.surroundSelectedText('**'), shift: false },
+			{ key: 'i', keyFunction: () => editor.surroundSelectedText('*'), shift: false },
+			{ key: 's', keyFunction: () => editor.surroundSelectedText('~~'), shift: true },
+			{ key: '1', keyFunction: () => editor.toNewLine('#'), shift: true },
+			{ key: '2', keyFunction: () => editor.toNewLine('##'), shift: true },
+			{ key: 'U', keyFunction: () => editor.toNewLine('-'), shift: true },
+			{ key: 'O', keyFunction: () => editor.toNewLine('1.'), shift: true },
 			{ key: 'C', keyFunction: addCodeBlock, shift: true }
 		];
 
@@ -79,28 +78,28 @@
 </script>
 
 <div class="buttons">
-	<button on:click={() => surroundSelectedText('**')} title="Bold">
+	<button on:click={() => editor.surroundSelectedText('**')} title="Bold">
 		<span class="material-icons-outlined"> format_bold </span>
 	</button>
-	<button on:click={() => surroundSelectedText('*')} title="Italic">
+	<button on:click={() => editor.surroundSelectedText('*')} title="Italic">
 		<span class="material-icons-outlined"> format_italic </span>
 	</button>
-	<button on:click={() => surroundSelectedText('~~')} title="Strikethrough">
+	<button on:click={() => editor.surroundSelectedText('~~')} title="Strikethrough">
 		<span class="material-icons-outlined"> format_strikethrough </span>
 	</button>
-	<button on:click={() => toNewLine('#')} title="Header 1">
+	<button on:click={() => editor.toNewLine('#')} title="Header 1">
 		<span class="span-text">h1</span>
 	</button>
-	<button on:click={() => toNewLine('##')} title="Header 2">
+	<button on:click={() => editor.toNewLine('##')} title="Header 2">
 		<span class="span-text">h2</span>
 	</button>
 
 	<span class="divider" />
 
-	<button on:click={() => toNewLine('-')} title="List">
+	<button on:click={() => editor.toNewLine('-')} title="List">
 		<span class="material-icons-outlined"> format_list_bulleted </span>
 	</button>
-	<button on:click={() => toNewLine('1.')} title="Numbered List">
+	<button on:click={() => editor.toNewLine('1.')} title="Numbered List">
 		<span class="material-icons-outlined">format_list_numbered</span>
 	</button>
 	<button on:click={addCodeBlock} title="Code">
@@ -109,7 +108,7 @@
 
 	<span class="divider" />
 
-	<button on:click={() => toNewLine('[title](link)')} title="Link">
+	<button on:click={() => editor.toNewLine('[title](link)')} title="Link">
 		<span class="material-icons-outlined"> link </span>
 	</button>
 	<button on:click={addImageBlock} title="Image">

@@ -1,24 +1,20 @@
 <script lang="ts">
-	import {
-		enterPressed,
-		pasteText,
-		getParentNodeOfLine,
-		tabPressed,
-		gotoEndOfNode
-	} from '$lib/editor/helper';
 	import type { IBlog } from '$lib/types';
 	import { onMount } from 'svelte';
 	import EditorButtons from './EditorButtons.svelte';
+	import Editor from '$lib/editor/index';
 
 	export let blog: IBlog | null;
 	export let updateOutput: (content: string) => void;
 	export let updateDb: (editorString: string) => void;
 
+	let editor: Editor;
 	let inputTextArea: HTMLDivElement;
 	let typeTimeout: ReturnType<typeof setTimeout>;
 
 	let windowSelection: Selection | null;
 	let prevSelectedLine: HTMLElement;
+	let prevSelectedLineNumber = 0;
 
 	const renderInitialBlog = (blog: IBlog | null, inputTextArea: HTMLDivElement) => {
 		if (!blog || !inputTextArea) return;
@@ -84,14 +80,13 @@
 		typeTimeout = setTimeout(pressRender, 1000);
 		if (e.key === 'Tab') {
 			e.preventDefault();
-			tabPressed();
+			editor.tabPressed();
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
-			enterPressed();
+			editor.enterPressed();
 		} else if (e.key === 'Shift') {
-			console.log(getParentNodeOfLine());
-		} else if (e.key === 'Backspace' && e.ctrlKey) {
-			// e.preventDefault();
+			console.log(editor.getParentNodeOfLine());
+		} else if (e.key === 'z' && e.ctrlKey) {
 			return;
 			// if (!windowSelection) return;
 			// // windowSelection.modify('extend', 'backward', 'word');
@@ -132,8 +127,12 @@
 		) {
 			if (inputTextArea.lastChild) {
 				console.log(prevSelectedLine);
+				console.log(prevSelectedLineNumber);
 				const range = document.createRange(); //Create a range (a range is a like the selection but invisible)
-				range.selectNodeContents(inputTextArea.lastChild); //Select the entire contents of the element with the range
+				const newFocusedPre = Array.from(inputTextArea.children).filter(
+					(child) => child.tagName === 'PRE'
+				)[prevSelectedLineNumber];
+				range.selectNodeContents(newFocusedPre); //Select the entire contents of the element with the range
 				range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
 				windowSelection.removeAllRanges(); //remove any selections already made
 				windowSelection.addRange(range);
@@ -151,13 +150,14 @@
 		e.preventDefault();
 		const text = e.clipboardData?.getData('text/plain');
 		if (!text) return;
-		pasteText(text);
+		editor.pasteText(text);
 	};
 
 	$: renderInitialBlog(blog, inputTextArea);
 
 	onMount(() => {
 		windowSelection = window.getSelection();
+		if (windowSelection) editor = new Editor(blog?.content || '', windowSelection);
 		const onSelectionChange = () => {
 			if (windowSelection) {
 				let newSelectedLine = windowSelection.focusNode?.parentElement;
@@ -170,6 +170,7 @@
 							prevSelectedLine.classList.remove('selected');
 						}
 						prevSelectedLine = newSelectedLine;
+						prevSelectedLineNumber = Array.from(inputTextArea.children).indexOf(newSelectedLine);
 					}
 				}
 			}
@@ -184,7 +185,7 @@
 
 <button on:click={updateFunction}>Save</button>
 <div class="container">
-	<EditorButtons {blog} {updateFunction} />
+	<EditorButtons {blog} {updateFunction} {editor} />
 	<div
 		class="editor"
 		id="editor"

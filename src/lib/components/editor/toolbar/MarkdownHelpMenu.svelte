@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MenuWrapper from '$lib/components/MenuWrapper.svelte';
-	import { cheatsheet } from '$lib/editor/toolbar/MarkdownCheatSheet';
+	import { cheatsheet } from '$lib/components/editor/toolbar/MarkdownCheatSheet';
 
 	export let helpMenuOpen: boolean;
 </script>
