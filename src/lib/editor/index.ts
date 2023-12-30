@@ -14,8 +14,17 @@ export default class Editor {
 	};
 
 	getParentNodeOfLine = () => {
-		const anchorNode = this.selection.anchorNode?.parentNode;
-		const focusNode = this.selection.focusNode?.parentNode;
+		let anchorNode = this.selection.anchorNode;
+		let focusNode = this.selection.focusNode;
+		// empty lines will return the pre element as anchorNode/focusNode
+		// this will cause the parentNode taken to be the editor itself
+		// this will account for it and fix it
+		if (!focusNode || !anchorNode) return;
+		// nodeType 3 is text node
+		if (anchorNode.nodeType === 3) {
+			anchorNode = anchorNode.parentNode;
+			focusNode = focusNode.parentNode;
+		}
 		if (!focusNode || !anchorNode) return;
 		if (focusNode === anchorNode) return anchorNode;
 		let firstNode = focusNode;

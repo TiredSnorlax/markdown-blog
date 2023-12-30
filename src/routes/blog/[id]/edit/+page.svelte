@@ -1,6 +1,6 @@
 <script lang="ts">
-	import TextEditor from '$lib/editor/TextEditor.svelte';
-	import ToolBar from '$lib/editor/toolbar/ToolBar.svelte';
+	import TextEditor from '$lib/components/editor/TextEditor.svelte';
+	import ToolBar from '$lib/components/editor/toolbar/ToolBar.svelte';
 	import type { IBlog } from '$lib/types';
 
 	import { page } from '$app/stores';

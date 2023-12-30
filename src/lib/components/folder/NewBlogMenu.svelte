@@ -20,9 +20,10 @@
 			parentId: currentId,
 			ownerId: $user.uid,
 			title: newTitle,
-			content: 'Edit me',
+			content: '',
 			createdAt: serverTimestamp(),
-			lastEdited: serverTimestamp()
+			lastEdited: serverTimestamp(),
+			isPublic: false
 		};
 
 		const docRef = await addDoc(collection(db, 'blogs'), newBlog);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { IBlog } from '$lib/types';
 	import ImageMenu from './toolbar/ImageMenu.svelte';
-	import MarkdownHelpMenu from '$lib/editor/toolbar/MarkdownHelpMenu.svelte';
+	import MarkdownHelpMenu from '$lib/components/editor/toolbar/MarkdownHelpMenu.svelte';
 	import { onMount } from 'svelte';
 	import type Editor from '$lib/editor';
 
@@ -47,20 +47,20 @@
 			{ key: 'b', keyFunction: () => editor.surroundSelectedText('**'), shift: false },
 			{ key: 'i', keyFunction: () => editor.surroundSelectedText('*'), shift: false },
 			{ key: 's', keyFunction: () => editor.surroundSelectedText('~~'), shift: true },
-			{ key: '1', keyFunction: () => editor.toNewLine('#'), shift: true },
-			{ key: '2', keyFunction: () => editor.toNewLine('##'), shift: true },
+			{ key: '!', keyFunction: () => editor.toNewLine('#'), shift: true },
+			{ key: '@', keyFunction: () => editor.toNewLine('##'), shift: true },
+			{ key: '#', keyFunction: () => editor.toNewLine('###'), shift: true },
 			{ key: 'U', keyFunction: () => editor.toNewLine('-'), shift: true },
 			{ key: 'O', keyFunction: () => editor.toNewLine('1.'), shift: true },
 			{ key: 'C', keyFunction: addCodeBlock, shift: true }
 		];
 
 		const ctrlKeyPressHandler = (e: KeyboardEvent) => {
+			console.log(e.key);
 			if (e.ctrlKey) {
-				console.log('ctrl');
 				for (const { key, keyFunction, shift } of ctrlKeyFunctions) {
 					if (e.key === key && e.shiftKey === shift) {
 						e.preventDefault();
-						console.log('running');
 						keyFunction();
 					}
 				}
@@ -71,7 +71,6 @@
 
 		return () => {
 			ctrlKeyFunctions = [];
-			console.log('ctrl keypress removed');
 			window.removeEventListener('keydown', ctrlKeyPressHandler);
 		};
 	});

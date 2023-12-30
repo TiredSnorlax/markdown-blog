@@ -31,8 +31,18 @@
 		padding: 1rem;
 	}
 
+	:global(h1) {
+		font-size: 2rem;
+	}
+
+	:global(h3) {
+		margin-bottom: 0.5rem;
+	}
+
 	:global(p) {
 		margin: 0;
+		line-height: 20px;
+		font-size: 16px;
 	}
 
 	:global(pre) {
@@ -67,6 +77,10 @@
 		text-align: start;
 		border: 1px solid lightgrey;
 		padding: 1rem;
+	}
+
+	:global(ul, ol) {
+		margin-top: 0;
 	}
 
 	:global(li > input) {

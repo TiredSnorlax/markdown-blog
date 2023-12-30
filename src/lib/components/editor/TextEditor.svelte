@@ -121,18 +121,21 @@
 
 	const changeFocus = (e: KeyboardEvent) => {
 		if (!windowSelection) return;
+		console.debug('change focus');
 		if (
 			windowSelection.anchorNode === inputTextArea ||
 			windowSelection.focusNode === inputTextArea
 		) {
 			if (inputTextArea.lastChild) {
-				console.log(prevSelectedLine);
-				console.log(prevSelectedLineNumber);
 				const range = document.createRange(); //Create a range (a range is a like the selection but invisible)
-				const newFocusedPre = Array.from(inputTextArea.children).filter(
-					(child) => child.tagName === 'PRE'
-				)[prevSelectedLineNumber];
-				range.selectNodeContents(newFocusedPre); //Select the entire contents of the element with the range
+				if (inputTextArea.children.length > prevSelectedLineNumber) {
+					const newFocusedPre = Array.from(inputTextArea.children).filter(
+						(child) => child.tagName === 'PRE'
+					)[prevSelectedLineNumber];
+					range.selectNodeContents(newFocusedPre); //Select the entire contents of the element with the range
+				} else {
+					range.selectNodeContents(inputTextArea.lastChild); //Select the entire contents of the element with the range
+				}
 				range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
 				windowSelection.removeAllRanges(); //remove any selections already made
 				windowSelection.addRange(range);
@@ -243,6 +246,7 @@
 
 		position: relative;
 		counter-increment: line-number;
+		user-select: text;
 	}
 
 	:global(.editor > pre::before) {

@@ -42,7 +42,7 @@
 	let addOptionsOpen = false;
 
 	const getBlogs = async (user: User | null) => {
-		if (!isAllowed) return;
+		if (!isAllowed || !folderId) return;
 		const blogsRef = collection(db, 'blogs');
 		let q: Query<DocumentData>;
 
@@ -62,7 +62,7 @@
 	};
 
 	const getFolders = async (user: User | null) => {
-		if (!isAllowed) return;
+		if (!isAllowed || !folderId) return;
 		const foldersRef = collection(db, 'folders');
 		let q: Query<DocumentData>;
 
@@ -82,7 +82,7 @@
 	};
 
 	const getCurrentFolder = async (user: User | null, folderId: string) => {
-		console.info('getting folder');
+		if (!folderId) return;
 		console.info('getfolder', user?.displayName);
 		const foldersRef = collection(db, 'folders');
 		if (folderId === 'root' && user) {
@@ -135,6 +135,7 @@
 	};
 
 	const getCurrentFolderNotOwner = async (foldersRef: CollectionReference<DocumentData>) => {
+		if (!folderId) return null;
 		const q = query(foldersRef, where('isPublic', '==', true), where(documentId(), '==', folderId));
 		const snapshot = await getDocs(q);
 		const firstDoc = snapshot.docs[0];
