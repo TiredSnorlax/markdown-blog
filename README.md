@@ -1,6 +1,6 @@
 # About this project
 
-This project is an online markdown editor.
+This project is an online markdown editor. You can try it [here](https://markdown-blog-tiredsnorlax.vercel.app/tryout)
 
 ## Core features:
 
