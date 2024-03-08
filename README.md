@@ -25,5 +25,5 @@ This is just a prototype and can be reworked in the future.
 
 ## Pictures:
 
-![Editor](static\readme\showcase-editor.png 'Editor')
-![File System](static\readme\showcase-file.png 'File System')
+![Editor](static/readme/showcase-editor.png 'Editor')
+![File System](static/readme/showcase-file.png 'File System')
