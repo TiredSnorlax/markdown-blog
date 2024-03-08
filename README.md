@@ -1,38 +1,29 @@
-# create-svelte
+# About this project
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+This project is an online markdown editor.
 
-## Creating a project
+## Core features:
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Editor
+2. Markdown parser
+3. File system
+   All of the above stated features were build from scratch with little dependencies
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## Caveats:
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+1. The editor is extremely buggy.
 
-## Developing
+- The solution may be to use an external library as it is too time consuming to build an editor like that from scratch
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+2. The markdown parser, while working, uses regex instead of the more traditional tokenisation
 
-```bash
-npm run dev
+- The functionality is there, but the code is rather unoptimised
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+3. The file system requires a server to handle the recursive deletion of folders and files, which the current serverless functions are unable to do so.
 
-## Building
+This is just a prototype and can be reworked in the future.
 
-To create a production version of your app:
+## Pictures:
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+![Editor](.\static\readme\showcase-editor.png 'Editor')
+![File System](.\static\readme\showcase-file.png 'File System')

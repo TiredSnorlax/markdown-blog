@@ -6,6 +6,8 @@
 	const checkIfHideTaskBar = (path: string) => {
 		if (path.match(/\/blog\/.+\/edit/)) {
 			hideTaskBar = true;
+		} else if (path.match(/\/tryout/)) {
+			hideTaskBar = true;
 		} else {
 			hideTaskBar = false;
 		}

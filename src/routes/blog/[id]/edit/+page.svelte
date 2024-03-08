@@ -28,7 +28,6 @@
 
 	const getBlog = async () => {
 		console.log('id: ', $page.params.id);
-		// TODO: Add Owner verificaiton
 
 		const docSnap = await getDoc(docRef);
 

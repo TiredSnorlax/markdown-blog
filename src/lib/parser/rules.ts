@@ -19,10 +19,7 @@ export const rules = [
 	[/!\[([^\]]+)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />'],
 
 	// links
-	[
-		/\[([^\]]+)\]\((\S+)\s(.+)\)/g,
-		'<a href="$2" title="$3" target="_blank" style="color:#2A5DB0">$1</a>'
-	],
+	[/\[(.*?)\]\((.*?)\)/g, '<a href="$2" title="$3" target="_blank" style="color:#2A5DB0">$1</a>'],
 
 	[/^[-*]{3}\s*$/gm, '<hr />'],
 	[/^_{3,}\s*$/gm, '<hr />']

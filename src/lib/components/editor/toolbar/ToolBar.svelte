@@ -7,6 +7,7 @@
 	export let editorOpen: boolean;
 	export let outputOpen: boolean;
 	export let resizeClosed: 'editor' | 'output' | null;
+	export let tryout: boolean = false;
 
 	let shareMenuOpen = false;
 
@@ -52,11 +53,13 @@
 			</button>
 		</div>
 	</div>
-	<button class="shareBtn" on:click={() => (shareMenuOpen = true)}>
-		<span class="material-icons-outlined"> share </span>
-		<p>Share</p></button
-	>
-	<ShareBlogMenu {blog} bind:shareMenuOpen />
+	{#if !tryout}
+		<button class="shareBtn" on:click={() => (shareMenuOpen = true)}>
+			<span class="material-icons-outlined"> share </span>
+			<p>Share</p></button
+		>
+		<ShareBlogMenu {blog} bind:shareMenuOpen />
+	{/if}
 </div>
 
 <style>
