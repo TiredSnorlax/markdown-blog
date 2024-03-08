@@ -1,3 +1,4 @@
+import parseCode from '$lib/highlighter';
 import {
 	rules,
 	blockQuoteRules,
@@ -237,10 +238,12 @@ export const handleLists = (listBlock: Block) => {
 
 export const handlePreBlocks = (listBlock: Block) => {
 	const startToken = listBlock.children[0];
+	let content = '';
 	let html = `<pre class="${startToken}">\n`;
 
 	for (let i = 1; i < listBlock.children.length - 1; i++) {
 		html += listBlock.children[i] + '\n';
+		content += listBlock.children[i] + '\n';
 	}
 	html += '</pre>\n';
 
